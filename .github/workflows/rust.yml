@@ -32,3 +32,12 @@ jobs:
       run: |
         cargo install wasm-bindgen-cli
         wasm-bindgen ./target/wasm32-unknown-unknown/release/hello-bracket.wasm --out-dir ${{github.workspace}}/wasm --no-modules --no-typescript
+    - name: Setup Pages
+      if: ${{ matrix.target == 'wasm32-unknown-unknown' }}
+      uses: actions/configure-pages@v4
+    - name: Upload WASM package artifact
+      if: ${{ matrix.target == 'wasm32-unknown-unknown' }}
+      uses: actions/upload-pages-artifact@v3
+      with:
+        name: wasm_build
+        path: ${{github.workspace}}/wasm
