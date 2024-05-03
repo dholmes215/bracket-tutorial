@@ -24,6 +24,11 @@ jobs:
     - name: Install rust target
       run: rustup target add ${{matrix.target}}
     - name: Build
-      run: cargo build --verbose --target ${{matrix.target}}
+      run: cargo build --verbose --release --target ${{matrix.target}}
     - name: Run tests
       run: cargo test --verbose
+    - name: Run wasm-bindgen
+      if: ${{ matrix.target == 'wasm32-unknown-unknown' }}
+      run: |
+        cargo install wasm-bindgen-cli
+        wasm-bindgen ./target/wasm32-unknown-unknown/release/hello-bracket.wasm --out-dir ${{github.workspace}}/wasm --no-modules --no-typescript
