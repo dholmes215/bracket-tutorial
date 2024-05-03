@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>bracket-lib hello world via WASM</title>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+</head>
+<body>
+<canvas id="canvas" width="640" height="480"></canvas>
+<script src="./hello-bracket.js"></script>
+<script>
+    window.addEventListener("load", async () => {
+        await wasm_bindgen("./hello-bracket_bg.wasm");
+    });
+</script>
+</body>
+</html>
