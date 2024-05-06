@@ -31,7 +31,7 @@ jobs:
       if: ${{ matrix.target == 'wasm32-unknown-unknown' }}
       run: |
         cargo install wasm-bindgen-cli
-        wasm-bindgen ./target/wasm32-unknown-unknown/release/hello-bracket.wasm --out-dir ${{github.workspace}}/wasm --no-modules --no-typescript
+        wasm-bindgen ./target/wasm32-unknown-unknown/release/bracket-tutorial.wasm --out-dir ${{github.workspace}}/wasm --no-modules --no-typescript
     - name: Setup Pages
       if: ${{ matrix.target == 'wasm32-unknown-unknown' }}
       uses: actions/configure-pages@v4
