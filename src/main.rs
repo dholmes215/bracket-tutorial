@@ -47,5 +47,25 @@ fn main() -> BError {
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
 
+    gs.ecs.create_entity()
+        .with(Position { x: 40, y: 25 })
+        .with(Renderable {
+            glyph: to_cp437('@'),
+            fg: RGB::named(YELLOW),
+            bg: RGB::named(BLACK),
+        })
+        .build();
+
+    for i in 0..10 {
+        gs.ecs.create_entity()
+            .with(Position { x: i * 7, y: 20 })
+            .with(Renderable {
+                glyph: to_cp437('☺'),
+                fg: RGB::named(RED),
+                bg: RGB::named(BLACK),
+            })
+            .build();
+    }
+
     main_loop(context, gs)
 }
