@@ -16,7 +16,10 @@ struct Renderable {
     bg: RGB,
 }
 
-struct State {}
+struct State {
+    ecs: World,
+}
+
 impl GameState for State {
     fn tick(&mut self, ctx: &mut BTerm) {
         ctx.cls();
@@ -35,9 +38,14 @@ fn main() -> BError {
         .with_simple_console(80, 25, "terminal_10x16.png")
         .with_dimensions(80, 25);
     #[cfg(not(target_arch = "wasm32"))]
-    let builder = builder.with_automatic_console_resize(true);
+        let builder = builder.with_automatic_console_resize(true);
     let context = builder.build()?;
 
-    let gs = State{ };
+    let mut gs = State {
+        ecs: World::new()
+    };
+    gs.ecs.register::<Position>();
+    gs.ecs.register::<Renderable>();
+
     main_loop(context, gs)
 }
