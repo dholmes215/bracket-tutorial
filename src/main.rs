@@ -9,6 +9,13 @@ struct Position {
     y: i32,
 }
 
+#[derive(Component)]
+struct Renderable {
+    glyph: FontCharType,
+    fg: RGB,
+    bg: RGB,
+}
+
 struct State {}
 impl GameState for State {
     fn tick(&mut self, ctx: &mut BTerm) {
