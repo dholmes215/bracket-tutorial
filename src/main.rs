@@ -23,7 +23,13 @@ struct State {
 impl GameState for State {
     fn tick(&mut self, ctx: &mut BTerm) {
         ctx.cls();
-        ctx.print(1, 1, "Hello Rust World");
+
+        let positions = self.ecs.read_storage::<Position>();
+        let renderables = self.ecs.read_storage::<Renderable>();
+
+        for (pos, render) in (&positions, &renderables).join() {
+            ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
+        }
     }
 }
 
@@ -35,8 +41,8 @@ fn main() -> BError {
         .with_title("Roguelike Tutorial")
         .with_font("terminal_10x16.png", 10, 16)
         .with_tile_dimensions(10, 16)
-        .with_simple_console(80, 25, "terminal_10x16.png")
-        .with_dimensions(80, 25);
+        .with_simple_console(80, 40, "terminal_10x16.png")
+        .with_dimensions(80, 40);
     #[cfg(not(target_arch = "wasm32"))]
         let builder = builder.with_automatic_console_resize(true);
     let context = builder.build()?;
