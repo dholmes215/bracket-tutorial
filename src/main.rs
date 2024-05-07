@@ -3,6 +3,12 @@ use specs::prelude::*;
 use std::cmp::{max, min};
 use specs_derive::Component;
 
+#[derive(Component)]
+struct Position {
+    x: i32,
+    y: i32,
+}
+
 struct State {}
 impl GameState for State {
     fn tick(&mut self, ctx: &mut BTerm) {
