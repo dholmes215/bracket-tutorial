@@ -8,9 +8,17 @@ impl GameState for State {
     }
 }
 
+embedded_resource!(FONT, "../resources/terminal_10x16.png");
+
 fn main() -> BError {
-    let context = BTermBuilder::simple80x50()
+    link_resource!(FONT, "resources/terminal_10x16.png");
+    let context = BTermBuilder::new()
         .with_title("Roguelike Tutorial")
+        .with_automatic_console_resize(true)
+        .with_font("terminal_10x16.png", 10, 16)
+        .with_tile_dimensions(10, 16)
+        .with_simple_console(80, 25, "terminal_10x16.png")
+        .with_dimensions(80, 25)
         .build()?;
     let gs = State{ };
     main_loop(context, gs)
