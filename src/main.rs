@@ -62,7 +62,7 @@ fn new_map() -> Vec<TileType> {
 
     for y in 0..MAP_HEIGHT {
         map[xy_idx(0, y)] = TileType::Wall;
-        map[xy_idx(MAP_HEIGHT, y)] = TileType::Wall;
+        map[xy_idx(MAP_WIDTH - 1, y)] = TileType::Wall;
     }
 
     // Now we'll randomly splat a bunch of walls. It won't be pretty, but it's a decent illustration.
@@ -79,6 +79,29 @@ fn new_map() -> Vec<TileType> {
     }
 
     map
+}
+
+fn draw_map(map: &[TileType], ctx: &mut BTerm) {
+    let mut y = 0;
+    let mut x = 0;
+    for tile in map.iter() {
+        // Render a tile depending on the tile type
+        match tile {
+            TileType::Floor => {
+                ctx.set(x, y, RGB::from_f32(0.5, 0.5, 0.5), RGB::from_f32(0., 0., 0.), to_cp437('.'));
+            }
+            TileType::Wall => {
+                ctx.set(x, y, RGB::from_f32(0.0, 1.0, 0.0), RGB::from_f32(0., 0., 0.), to_cp437('#'));
+            }
+        }
+
+        // Move the coordinates
+        x += 1;
+        if x > MAP_WIDTH - 1 {
+            x = 0;
+            y += 1;
+        }
+    }
 }
 
 struct State {
@@ -99,6 +122,9 @@ impl GameState for State {
 
         player_input(self, ctx);
         self.run_systems();
+
+        let map = self.ecs.fetch::<Vec<TileType>>();
+        draw_map(&map, ctx);
 
         let positions = self.ecs.read_storage::<Position>();
         let renderables = self.ecs.read_storage::<Renderable>();
@@ -176,6 +202,8 @@ fn main() -> BError {
             .with(LeftMover {})
             .build();
     }
+
+    gs.ecs.insert(new_map());
 
     main_loop(context, gs)
 }
