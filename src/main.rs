@@ -88,6 +88,20 @@ fn draw_map(map: &[TileType], ctx: &mut BTerm) {
     }
 }
 
+fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
+    let mut positions = ecs.write_storage::<Position>();
+    let mut players = ecs.write_storage::<Player>();
+    let map = ecs.fetch::<Vec<TileType>>();
+
+    for (_player, pos) in (&mut players, &mut positions).join() {
+        let destination_idx = xy_idx(pos.x + delta_x, pos.y + delta_y);
+        if map[destination_idx] != TileType::Wall {
+            pos.x = min(MAP_WIDTH - 1, max(0, pos.x + delta_x));
+            pos.y = min(MAP_HEIGHT - 1, max(0, pos.y + delta_y));
+        }
+    }
+}
+
 struct State {
     ecs: World,
 }
@@ -112,16 +126,6 @@ impl GameState for State {
         for (pos, render) in (&positions, &renderables).join() {
             ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
         }
-    }
-}
-
-fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
-    let mut positions = ecs.write_storage::<Position>();
-    let mut players = ecs.write_storage::<Player>();
-
-    for (_player, pos) in (&mut players, &mut positions).join() {
-        pos.x = min(TERM_WIDTH - 1, max(0, pos.x + delta_x));
-        pos.y = min(TERM_HEIGHT - 1, max(0, pos.y + delta_y));
     }
 }
 
