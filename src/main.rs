@@ -93,8 +93,7 @@ struct State {
 }
 
 impl State {
-    fn run_systems(&mut self) {
-    }
+    fn run_systems(&mut self) {}
 }
 
 impl GameState for State {
@@ -150,7 +149,7 @@ fn main() -> BError {
         .with_tile_dimensions(10, 16)
         .with_simple_console(TERM_WIDTH, TERM_HEIGHT, "terminal_10x16.png")
         .with_dimensions(TERM_WIDTH, TERM_HEIGHT);
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(any(feature = "opengl", feature = "webgpu"), not(target_arch = "wasm32")))]
         let builder = builder.with_automatic_console_resize(true);
     let context = builder.build()?;
 
