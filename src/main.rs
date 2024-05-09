@@ -1,12 +1,14 @@
 mod map;
 mod player;
 mod components;
+mod visibility_system;
 
 use bracket_lib::prelude::*;
 use specs::prelude::*;
 use components::{Player, Position, Renderable};
 use crate::components::Viewshed;
 use crate::map::*;
+use crate::visibility_system::VisibilitySystem;
 
 const TERM_WIDTH: i32 = 80;
 const TERM_HEIGHT: i32 = 40;
@@ -16,7 +18,11 @@ struct State {
 }
 
 impl State {
-    fn run_systems(&mut self) {}
+    fn run_systems(&mut self) {
+        let mut vis = VisibilitySystem{};
+        vis.run_now(&self.ecs);
+        self.ecs.maintain();
+    }
 }
 
 impl GameState for State {
