@@ -2,12 +2,14 @@ mod map;
 mod player;
 mod components;
 mod visibility_system;
+mod monster_ai_system;
 
 use bracket_lib::prelude::*;
 use specs::prelude::*;
 use components::{Player, Position, Renderable};
-use crate::components::Viewshed;
+use crate::components::{Monster, Viewshed};
 use crate::map::*;
+use crate::monster_ai_system::MonsterAI;
 use crate::visibility_system::VisibilitySystem;
 
 const TERM_WIDTH: i32 = 80;
@@ -21,6 +23,8 @@ impl State {
     fn run_systems(&mut self) {
         let mut vis = VisibilitySystem {};
         vis.run_now(&self.ecs);
+        let mut mob = MonsterAI {};
+        mob.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -69,6 +73,7 @@ fn main() -> BError {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
     gs.ecs.register::<Viewshed>();
+    gs.ecs.register::<Monster>();
 
     let map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();
@@ -80,8 +85,8 @@ fn main() -> BError {
         let glyph: FontCharType;
         let roll = rng.roll_dice(1, 2);
         match roll {
-            1 => {glyph = to_cp437('g')}
-            _ => {glyph = to_cp437('o')}
+            1 => { glyph = to_cp437('g') }
+            _ => { glyph = to_cp437('o') }
         }
 
         gs.ecs.create_entity()
@@ -92,6 +97,7 @@ fn main() -> BError {
                 bg: RGB::named(BLACK),
             })
             .with(Viewshed { visible_tiles: Vec::new(), range: 8, dirty: true })
+            .with(Monster {})
             .build();
     }
 
