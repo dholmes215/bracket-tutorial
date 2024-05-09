@@ -82,7 +82,7 @@ fn apply_vertical_tunnel(map: &mut [TileType], y1: i32, y2: i32, x: i32) {
     }
 }
 
-pub fn new_map_rooms_and_corridors() -> Vec<TileType> {
+pub fn new_map_rooms_and_corridors() -> (Vec<Rect>, Vec<TileType>) {
     let mut map = vec![TileType::Wall; (MAP_WIDTH * MAP_HEIGHT) as usize];
 
     let mut rooms: Vec<Rect> = Vec::new();
@@ -120,5 +120,5 @@ pub fn new_map_rooms_and_corridors() -> Vec<TileType> {
         }
     }
 
-    map
+    (rooms, map)
 }
