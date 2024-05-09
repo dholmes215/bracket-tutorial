@@ -19,7 +19,8 @@ pub struct Map {
     pub rooms: Vec<Rect>,
     pub width: i32,
     pub height: i32,
-    pub revealed_tiles: Vec<bool>
+    pub revealed_tiles: Vec<bool>,
+    pub visible_tiles: Vec<bool>,
 }
 
 impl Map {
@@ -62,6 +63,7 @@ impl Map {
             width: DEFAULT_MAP_WIDTH,
             height: DEFAULT_MAP_HEIGHT,
             revealed_tiles: vec![false; (DEFAULT_MAP_WIDTH * DEFAULT_MAP_HEIGHT) as usize],
+            visible_tiles: vec![false; (DEFAULT_MAP_WIDTH * DEFAULT_MAP_HEIGHT) as usize],
         };
 
         const MAX_ROOMS: i32 = 30;
@@ -144,14 +146,20 @@ pub fn draw_map(ecs: &World, ctx: &mut BTerm) {
     for (idx,tile) in map.tiles.iter().enumerate() {
         // Render a tile depending on the tile type
         if map.revealed_tiles[idx] {
+            let glyph;
+            let mut fg;
             match tile {
                 TileType::Floor => {
-                    ctx.set(x, y, RGB::from_f32(0.5, 0.5, 0.5), RGB::from_f32(0., 0., 0.), to_cp437('.'));
+                    glyph = to_cp437('.');
+                    fg = RGB::from_f32(0.5, 0.5, 0.5);
                 }
                 TileType::Wall => {
-                    ctx.set(x, y, RGB::from_f32(0.0, 1.0, 0.0), RGB::from_f32(0., 0., 0.), to_cp437('#'));
+                    glyph = to_cp437('#');
+                    fg = RGB::from_f32(0.0, 1.0, 0.0);
                 }
             }
+            if !map.visible_tiles[idx] { fg = fg.to_greyscale() }
+            ctx.set(x, y, fg, RGB::from_f32(0., 0., 0.), glyph);
         }
 
         // Move the coordinates
