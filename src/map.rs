@@ -2,9 +2,8 @@ use std::cmp::{max, min};
 use bracket_lib::algorithm_traits::BaseMap;
 use bracket_lib::prelude::{Algorithm2D, BTerm, Point, RandomNumberGenerator, to_cp437};
 use bracket_lib::color::RGB;
-use specs::{Join, World, WorldExt};
+use specs::prelude::*;
 use crate::{TERM_HEIGHT, TERM_WIDTH};
-use crate::components::{Player, Viewshed};
 
 const DEFAULT_MAP_WIDTH: i32 = TERM_WIDTH;
 const DEFAULT_MAP_HEIGHT: i32 = TERM_HEIGHT;
@@ -20,6 +19,7 @@ pub struct Map {
     pub rooms: Vec<Rect>,
     pub width: i32,
     pub height: i32,
+    pub revealed_tiles: Vec<bool>
 }
 
 impl Map {
@@ -61,6 +61,7 @@ impl Map {
             rooms: Vec::new(),
             width: DEFAULT_MAP_WIDTH,
             height: DEFAULT_MAP_HEIGHT,
+            revealed_tiles: vec![false; (DEFAULT_MAP_WIDTH * DEFAULT_MAP_HEIGHT) as usize],
         };
 
         const MAX_ROOMS: i32 = 30;
@@ -136,34 +137,28 @@ impl Rect {
 }
 
 pub fn draw_map(ecs: &World, ctx: &mut BTerm) {
-    let mut viewsheds = ecs.write_storage::<Viewshed>();
-    let mut players = ecs.write_storage::<Player>();
     let map = ecs.fetch::<Map>();
 
-    for (_player, viewshed) in (&mut players, &mut viewsheds).join() {
-
-        let mut y = 0;
-        let mut x = 0;
-        for tile in map.tiles.iter() {
-            // Render a tile depending on the tile type
-            let pt = Point::new(x, y);
-            if viewshed.visible_tiles.contains(&pt) {
-                match tile {
-                    TileType::Floor => {
-                        ctx.set(x, y, RGB::from_f32(0.5, 0.5, 0.5), RGB::from_f32(0., 0., 0.), to_cp437('.'));
-                    }
-                    TileType::Wall => {
-                        ctx.set(x, y, RGB::from_f32(0.0, 1.0, 0.0), RGB::from_f32(0., 0., 0.), to_cp437('#'));
-                    }
+    let mut y = 0;
+    let mut x = 0;
+    for (idx,tile) in map.tiles.iter().enumerate() {
+        // Render a tile depending on the tile type
+        if map.revealed_tiles[idx] {
+            match tile {
+                TileType::Floor => {
+                    ctx.set(x, y, RGB::from_f32(0.5, 0.5, 0.5), RGB::from_f32(0., 0., 0.), to_cp437('.'));
+                }
+                TileType::Wall => {
+                    ctx.set(x, y, RGB::from_f32(0.0, 1.0, 0.0), RGB::from_f32(0., 0., 0.), to_cp437('#'));
                 }
             }
+        }
 
-            // Move the coordinates
-            x += 1;
-            if x > map.width - 1 {
-                x = 0;
-                y += 1;
-            }
+        // Move the coordinates
+        x += 1;
+        if x > map.width - 1 {
+            x = 0;
+            y += 1;
         }
     }
 }
