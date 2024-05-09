@@ -78,7 +78,7 @@ fn main() -> BError {
             bg: RGB::named(BLACK),
         })
         .with(Player {})
-        .with(Viewshed { visible_tiles: Vec::new(), range: 8 })
+        .with(Viewshed { visible_tiles: Vec::new(), range: 8 , dirty: true})
         .build();
 
     main_loop(context, gs)
