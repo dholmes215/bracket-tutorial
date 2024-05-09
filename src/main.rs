@@ -5,6 +5,7 @@ mod components;
 use bracket_lib::prelude::*;
 use specs::prelude::*;
 use components::{Player, Position, Renderable};
+use crate::components::Viewshed;
 use crate::map::*;
 
 const TERM_WIDTH: i32 = 80;
@@ -58,6 +59,7 @@ fn main() -> BError {
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
+    gs.ecs.register::<Viewshed>();
 
     let map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();
@@ -71,6 +73,7 @@ fn main() -> BError {
             bg: RGB::named(BLACK),
         })
         .with(Player {})
+        .with(Viewshed { visible_tiles: Vec::new(), range: 8 })
         .build();
 
     main_loop(context, gs)

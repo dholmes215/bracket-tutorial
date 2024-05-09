@@ -1,6 +1,6 @@
 use specs_derive::Component;
 use specs::prelude::*;
-use bracket_lib::prelude::FontCharType;
+use bracket_lib::prelude::*;
 use bracket_lib::color::RGB;
 
 #[derive(Component, Debug)]
@@ -17,4 +17,10 @@ pub struct Renderable {
     pub glyph: FontCharType,
     pub fg: RGB,
     pub bg: RGB,
+}
+
+#[derive(Component)]
+pub struct Viewshed {
+    pub visible_tiles: Vec<Point>,
+    pub range: i32,
 }
