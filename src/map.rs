@@ -22,6 +22,7 @@ pub struct Map {
     pub revealed_tiles: Vec<bool>,
     pub visible_tiles: Vec<bool>,
     pub blocked: Vec<bool>,
+    pub tile_content: Vec<Vec<Entity>>
 }
 
 impl Map {
@@ -58,14 +59,16 @@ impl Map {
     }
 
     pub fn new_map_rooms_and_corridors() -> Map {
+        let map_size: usize = (DEFAULT_MAP_WIDTH * DEFAULT_MAP_HEIGHT) as usize;
         let mut map = Map {
-            tiles: vec![TileType::Wall; (DEFAULT_MAP_WIDTH * DEFAULT_MAP_HEIGHT) as usize],
+            tiles: vec![TileType::Wall; map_size],
             rooms: Vec::new(),
             width: DEFAULT_MAP_WIDTH,
             height: DEFAULT_MAP_HEIGHT,
-            revealed_tiles: vec![false; (DEFAULT_MAP_WIDTH * DEFAULT_MAP_HEIGHT) as usize],
-            visible_tiles: vec![false; (DEFAULT_MAP_WIDTH * DEFAULT_MAP_HEIGHT) as usize],
-            blocked: vec![false; (DEFAULT_MAP_WIDTH * DEFAULT_MAP_HEIGHT) as usize],
+            revealed_tiles: vec![false; map_size],
+            visible_tiles: vec![false; map_size],
+            blocked: vec![false; map_size],
+            tile_content: vec![Vec::new(); map_size]
         };
 
         const MAX_ROOMS: i32 = 30;
@@ -115,6 +118,12 @@ impl Map {
         if x < 1 || x > self.width - 1 || y < 1 || y > self.height - 1 { return false; }
         let idx = self.xy_idx(x, y);
         !self.blocked[idx]
+    }
+
+    pub fn clear_content_index(&mut self) {
+        for content in self.tile_content.iter_mut() {
+            content.clear();
+        }
     }
 }
 
