@@ -1,5 +1,6 @@
 use std::cmp::{max, min};
-use bracket_lib::prelude::{BTerm, RandomNumberGenerator, to_cp437};
+use bracket_lib::algorithm_traits::BaseMap;
+use bracket_lib::prelude::{Algorithm2D, BTerm, Point, RandomNumberGenerator, to_cp437};
 use bracket_lib::color::RGB;
 use crate::{TERM_HEIGHT, TERM_WIDTH};
 
@@ -95,6 +96,18 @@ impl Map {
         }
 
         map
+    }
+}
+
+impl BaseMap for Map {
+    fn is_opaque(&self, idx: usize) -> bool {
+        self.tiles[idx] == TileType::Wall
+    }
+}
+
+impl Algorithm2D for Map {
+    fn dimensions(&self) -> Point {
+        Point::new(self.width, self.height)
     }
 }
 
