@@ -111,6 +111,7 @@ fn main() -> BError {
     }
 
     gs.ecs.insert(map);
+    gs.ecs.insert(Point::new(player_x, player_y));
 
     gs.ecs.create_entity()
         .with(Position { x: player_x, y: player_y })
