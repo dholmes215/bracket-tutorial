@@ -58,7 +58,7 @@ impl Map {
     }
 
     pub fn new_map_rooms_and_corridors() -> Map {
-        let mut map = Map{
+        let mut map = Map {
             tiles: vec![TileType::Wall; (DEFAULT_MAP_WIDTH * DEFAULT_MAP_HEIGHT) as usize],
             rooms: Vec::new(),
             width: DEFAULT_MAP_WIDTH,
@@ -112,7 +112,7 @@ impl Map {
     }
 
     fn is_exit_valid(&self, x: i32, y: i32) -> bool {
-        if x < 1 || x > self.width-1 || y < 1 || y > self.height-1 { return false; }
+        if x < 1 || x > self.width - 1 || y < 1 || y > self.height - 1 { return false; }
         let idx = self.xy_idx(x, y);
         !self.blocked[idx]
     }
@@ -130,10 +130,16 @@ impl BaseMap for Map {
         let w = self.width as usize;
 
         // Cardinal directions
-        if self.is_exit_valid(x-1, y) { exits.push((idx-1, 1.0)) };
-        if self.is_exit_valid(x+1, y) { exits.push((idx+1, 1.0)) };
-        if self.is_exit_valid(x, y-1) { exits.push((idx-w, 1.0)) };
-        if self.is_exit_valid(x, y+1) { exits.push((idx+w, 1.0)) };
+        if self.is_exit_valid(x - 1, y) { exits.push((idx - 1, 1.0)) };
+        if self.is_exit_valid(x + 1, y) { exits.push((idx + 1, 1.0)) };
+        if self.is_exit_valid(x, y - 1) { exits.push((idx - w, 1.0)) };
+        if self.is_exit_valid(x, y + 1) { exits.push((idx + w, 1.0)) };
+
+        // Diagonals
+        if self.is_exit_valid(x - 1, y - 1) { exits.push(((idx - 1) - 1, 1.45)) };
+        if self.is_exit_valid(x + 1, y - 1) { exits.push(((idx - 1) + 1, 1.45)) };
+        if self.is_exit_valid(x - 1, y + 1) { exits.push(((idx + 1) - 1, 1.45)) };
+        if self.is_exit_valid(x + 1, y + 1) { exits.push(((idx + 1) + 1, 1.45)) };
 
         exits
     }
@@ -179,7 +185,7 @@ pub fn draw_map(ecs: &World, ctx: &mut BTerm) {
 
     let mut y = 0;
     let mut x = 0;
-    for (idx,tile) in map.tiles.iter().enumerate() {
+    for (idx, tile) in map.tiles.iter().enumerate() {
         // Render a tile depending on the tile type
         if map.revealed_tiles[idx] {
             let glyph;
