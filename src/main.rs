@@ -19,7 +19,7 @@ struct State {
 
 impl State {
     fn run_systems(&mut self) {
-        let mut vis = VisibilitySystem{};
+        let mut vis = VisibilitySystem {};
         vis.run_now(&self.ecs);
         self.ecs.maintain();
     }
@@ -36,9 +36,13 @@ impl GameState for State {
 
         let positions = self.ecs.read_storage::<Position>();
         let renderables = self.ecs.read_storage::<Renderable>();
+        let map = self.ecs.fetch::<Map>();
 
         for (pos, render) in (&positions, &renderables).join() {
-            ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
+            let idx = map.xy_idx(pos.x, pos.y);
+            if map.visible_tiles[idx] {
+                ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
+            }
         }
     }
 }
@@ -68,6 +72,20 @@ fn main() -> BError {
 
     let map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();
+
+    for room in map.rooms.iter().skip(1) {
+        let (x, y) = room.center();
+        gs.ecs.create_entity()
+            .with(Position { x, y })
+            .with(Renderable {
+                glyph: to_cp437('g'),
+                fg: RGB::named(RED),
+                bg: RGB::named(BLACK),
+            })
+            .with(Viewshed { visible_tiles: Vec::new(), range: 8, dirty: true })
+            .build();
+    }
+
     gs.ecs.insert(map);
 
     gs.ecs.create_entity()
@@ -78,7 +96,7 @@ fn main() -> BError {
             bg: RGB::named(BLACK),
         })
         .with(Player {})
-        .with(Viewshed { visible_tiles: Vec::new(), range: 8 , dirty: true})
+        .with(Viewshed { visible_tiles: Vec::new(), range: 8, dirty: true })
         .build();
 
     main_loop(context, gs)
