@@ -15,8 +15,12 @@ use crate::visibility_system::VisibilitySystem;
 const TERM_WIDTH: i32 = 80;
 const TERM_HEIGHT: i32 = 40;
 
+#[derive(PartialEq, Copy, Clone)]
+pub enum RunState{ Paused, Running }
+
 struct State {
-    ecs: World,
+    pub ecs: World,
+    pub runstate: RunState,
 }
 
 impl State {
@@ -33,8 +37,12 @@ impl GameState for State {
     fn tick(&mut self, ctx: &mut BTerm) {
         ctx.cls();
 
-        player::player_input(self, ctx);
-        self.run_systems();
+        if self.runstate == RunState::Running {
+            self.run_systems();
+            self.runstate = RunState::Paused;
+        } else {
+            self.runstate = player::player_input(self, ctx);
+        }
 
         draw_map(&self.ecs, ctx);
 
@@ -67,7 +75,8 @@ fn main() -> BError {
     context.with_post_scanlines(true);
 
     let mut gs = State {
-        ecs: World::new()
+        ecs: World::new(),
+        runstate: RunState::Running,
     };
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
