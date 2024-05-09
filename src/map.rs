@@ -2,7 +2,9 @@ use std::cmp::{max, min};
 use bracket_lib::algorithm_traits::BaseMap;
 use bracket_lib::prelude::{Algorithm2D, BTerm, Point, RandomNumberGenerator, to_cp437};
 use bracket_lib::color::RGB;
+use specs::{Join, World, WorldExt};
 use crate::{TERM_HEIGHT, TERM_WIDTH};
+use crate::components::{Player, Viewshed};
 
 const DEFAULT_MAP_WIDTH: i32 = TERM_WIDTH;
 const DEFAULT_MAP_HEIGHT: i32 = TERM_HEIGHT;
@@ -133,25 +135,35 @@ impl Rect {
     }
 }
 
-pub fn draw_map(map: &Map, ctx: &mut BTerm) {
-    let mut y = 0;
-    let mut x = 0;
-    for tile in map.tiles.iter() {
-        // Render a tile depending on the tile type
-        match tile {
-            TileType::Floor => {
-                ctx.set(x, y, RGB::from_f32(0.5, 0.5, 0.5), RGB::from_f32(0., 0., 0.), to_cp437('.'));
-            }
-            TileType::Wall => {
-                ctx.set(x, y, RGB::from_f32(0.0, 1.0, 0.0), RGB::from_f32(0., 0., 0.), to_cp437('#'));
-            }
-        }
+pub fn draw_map(ecs: &World, ctx: &mut BTerm) {
+    let mut viewsheds = ecs.write_storage::<Viewshed>();
+    let mut players = ecs.write_storage::<Player>();
+    let map = ecs.fetch::<Map>();
 
-        // Move the coordinates
-        x += 1;
-        if x > map.width - 1 {
-            x = 0;
-            y += 1;
+    for (_player, viewshed) in (&mut players, &mut viewsheds).join() {
+
+        let mut y = 0;
+        let mut x = 0;
+        for tile in map.tiles.iter() {
+            // Render a tile depending on the tile type
+            let pt = Point::new(x, y);
+            if viewshed.visible_tiles.contains(&pt) {
+                match tile {
+                    TileType::Floor => {
+                        ctx.set(x, y, RGB::from_f32(0.5, 0.5, 0.5), RGB::from_f32(0., 0., 0.), to_cp437('.'));
+                    }
+                    TileType::Wall => {
+                        ctx.set(x, y, RGB::from_f32(0.0, 1.0, 0.0), RGB::from_f32(0., 0., 0.), to_cp437('#'));
+                    }
+                }
+            }
+
+            // Move the coordinates
+            x += 1;
+            if x > map.width - 1 {
+                x = 0;
+                y += 1;
+            }
         }
     }
 }
