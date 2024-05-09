@@ -4,13 +4,10 @@ use bracket_lib::prelude::*;
 use specs::prelude::*;
 use std::cmp::{max, min};
 use specs_derive::Component;
-use crate::map::new_map_rooms_and_corridors;
+use crate::map::*;
 
 const TERM_WIDTH: i32 = 80;
 const TERM_HEIGHT: i32 = 40;
-
-const MAP_WIDTH: i32 = TERM_WIDTH;
-const MAP_HEIGHT: i32 = TERM_HEIGHT;
 
 #[derive(Component)]
 struct Position {
@@ -28,49 +25,16 @@ struct Renderable {
 #[derive(Component, Debug)]
 struct Player {}
 
-#[derive(PartialEq, Copy, Clone)]
-enum TileType {
-    Wall,
-    Floor,
-}
-
-pub fn xy_idx(x: i32, y: i32) -> usize {
-    (y as usize * 80) + x as usize
-}
-
-fn draw_map(map: &[TileType], ctx: &mut BTerm) {
-    let mut y = 0;
-    let mut x = 0;
-    for tile in map.iter() {
-        // Render a tile depending on the tile type
-        match tile {
-            TileType::Floor => {
-                ctx.set(x, y, RGB::from_f32(0.5, 0.5, 0.5), RGB::from_f32(0., 0., 0.), to_cp437('.'));
-            }
-            TileType::Wall => {
-                ctx.set(x, y, RGB::from_f32(0.0, 1.0, 0.0), RGB::from_f32(0., 0., 0.), to_cp437('#'));
-            }
-        }
-
-        // Move the coordinates
-        x += 1;
-        if x > MAP_WIDTH - 1 {
-            x = 0;
-            y += 1;
-        }
-    }
-}
-
 fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let mut positions = ecs.write_storage::<Position>();
     let mut players = ecs.write_storage::<Player>();
-    let map = ecs.fetch::<Vec<TileType>>();
+    let map = ecs.fetch::<Map>();
 
     for (_player, pos) in (&mut players, &mut positions).join() {
-        let destination_idx = xy_idx(pos.x + delta_x, pos.y + delta_y);
-        if map[destination_idx] != TileType::Wall {
-            pos.x = min(MAP_WIDTH - 1, max(0, pos.x + delta_x));
-            pos.y = min(MAP_HEIGHT - 1, max(0, pos.y + delta_y));
+        let destination_idx = map.xy_idx(pos.x + delta_x, pos.y + delta_y);
+        if map.tiles[destination_idx] != TileType::Wall {
+            pos.x = min(map.width - 1, max(0, pos.x + delta_x));
+            pos.y = min(map.height - 1, max(0, pos.y + delta_y));
         }
     }
 }
@@ -90,7 +54,7 @@ impl GameState for State {
         player_input(self, ctx);
         self.run_systems();
 
-        let map = self.ecs.fetch::<Vec<TileType>>();
+        let map = self.ecs.fetch::<Map>();
         draw_map(&map, ctx);
 
         let positions = self.ecs.read_storage::<Position>();
@@ -122,7 +86,7 @@ fn player_input(gs: &mut State, ctx: &mut BTerm) {
             VirtualKeyCode::Down |
             VirtualKeyCode::Numpad2 |
             VirtualKeyCode::J => try_move_player(0, 1, &mut gs.ecs),
-            
+
             _ => {}
         }
     }
@@ -149,9 +113,9 @@ fn main() -> BError {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
 
-    let (rooms, map) = new_map_rooms_and_corridors();
+    let map = Map::new_map_rooms_and_corridors();
+    let (player_x, player_y) = map.rooms[0].center();
     gs.ecs.insert(map);
-    let (player_x, player_y) = rooms[0].center();
 
     gs.ecs.create_entity()
         .with(Position { x: player_x, y: player_y })
