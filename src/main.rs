@@ -96,15 +96,15 @@ impl GameState for State {
     }
 }
 
-embedded_resource!(FONT, "../resources/terminal_10x16.png");
+embedded_resource!(FONT, "../resources/terminal_10x16_modified.png");
 
 fn main() -> BError {
-    link_resource!(FONT, "resources/terminal_10x16.png");
+    link_resource!(FONT, "resources/terminal_10x16_modified.png");
     let builder = BTermBuilder::new()
         .with_title("Roguelike Tutorial")
-        .with_font("terminal_10x16.png", 10, 16)
+        .with_font("terminal_10x16_modified.png", 10, 16)
         .with_tile_dimensions(10, 16)
-        .with_simple_console(TERM_WIDTH, TERM_HEIGHT, "terminal_10x16.png")
+        .with_simple_console(TERM_WIDTH, TERM_HEIGHT, "terminal_10x16_modified.png")
         .with_dimensions(TERM_WIDTH, TERM_HEIGHT);
     #[cfg(all(any(feature = "opengl", feature = "webgpu"), not(target_arch = "wasm32")))]
         let builder = builder.with_automatic_console_resize(true);
