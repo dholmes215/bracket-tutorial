@@ -8,7 +8,7 @@ use crate::map::{Map, TileType};
 pub fn player_input(gs: &mut State, ctx: &mut BTerm) -> RunState {
     // Player movement
     match ctx.key {
-        None => { return RunState::Paused; } // Nothing happened
+        None => { return RunState::AwaitingInput; } // Nothing happened
         Some(key) => match key {
             VirtualKeyCode::Left |
             VirtualKeyCode::Numpad4 |
@@ -39,10 +39,10 @@ pub fn player_input(gs: &mut State, ctx: &mut BTerm) -> RunState {
             VirtualKeyCode::Numpad1 |
             VirtualKeyCode::B => try_move_player(-1, 1, &mut gs.ecs),
 
-            _ => { return RunState::Paused; }
+            _ => { return RunState::AwaitingInput; }
         }
     }
-    RunState::Running
+    RunState::PlayerTurn
 }
 
 fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {

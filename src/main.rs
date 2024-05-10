@@ -13,14 +13,16 @@ use components::*;
 use crate::damage_system::DamageSystem;
 use crate::map::*;
 use crate::map_indexing_system::MapIndexingSystem;
+use crate::melee_combat_system::MeleeCombatSystem;
 use crate::monster_ai_system::MonsterAI;
+use crate::player::player_input;
 use crate::visibility_system::VisibilitySystem;
 
 const TERM_WIDTH: i32 = 80;
 const TERM_HEIGHT: i32 = 40;
 
 #[derive(PartialEq, Copy, Clone)]
-pub enum RunState { Paused, Running }
+pub enum RunState { AwaitingInput, PreRun, PlayerTurn, MonsterTurn }
 
 struct State {
     pub ecs: World,
@@ -34,6 +36,8 @@ impl State {
         mob.run_now(&self.ecs);
         let mut mapindex = MapIndexingSystem {};
         mapindex.run_now(&self.ecs);
+        let mut melee_combat_system = MeleeCombatSystem {};
+        melee_combat_system.run_now(&self.ecs);
         let mut damage_system = DamageSystem{};
         damage_system.run_now(&self.ecs);
         self.ecs.maintain();
@@ -49,18 +53,29 @@ impl GameState for State {
             newrunstate = *runstate;
         }
 
-        if newrunstate == RunState::Running {
-            self.run_systems();
-            damage_system::delete_the_dead(&mut self.ecs);
-            newrunstate = RunState::Paused;
-        } else {
-            newrunstate = player::player_input(self, ctx);
+        match newrunstate {
+            RunState::PreRun => {
+                self.run_systems();
+                newrunstate = RunState::AwaitingInput;
+            }
+            RunState::AwaitingInput => {
+                newrunstate = player_input(self,ctx);
+            }
+            RunState::PlayerTurn => {
+                self.run_systems();
+                newrunstate = RunState::MonsterTurn;
+            }
+            RunState::MonsterTurn => {
+                self.run_systems();
+                newrunstate = RunState::AwaitingInput;
+            }
         }
 
         {
             let mut runwriter = self.ecs.write_resource::<RunState>();
             *runwriter = newrunstate;
         }
+        damage_system::delete_the_dead(&mut self.ecs);
 
         draw_map(&self.ecs, ctx);
 
@@ -145,7 +160,7 @@ fn main() -> BError {
 
     gs.ecs.insert(map);
     gs.ecs.insert(Point::new(player_x, player_y));
-    gs.ecs.insert(RunState::Running);
+    gs.ecs.insert(RunState::PreRun);
 
     // Create player
     let player_entity = gs.ecs
