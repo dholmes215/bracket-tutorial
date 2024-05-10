@@ -4,7 +4,7 @@ use specs::prelude::*;
 use crate::components::*;
 use crate::gamelog::GameLog;
 use crate::map::Map;
-use crate::TERM_HEIGHT;
+use crate::{State, TERM_HEIGHT};
 
 pub fn draw_ui(ecs: &World, ctx: &mut BTerm) {
     ctx.draw_box(0, TERM_HEIGHT - 7, 79, 6, RGB::named(WHITE), RGB::named(BLACK));
@@ -28,8 +28,7 @@ pub fn draw_ui(ecs: &World, ctx: &mut BTerm) {
 
     let mut y = TERM_HEIGHT - 2;
     for s in log.entries.iter().rev() {
-        if y == TERM_HEIGHT - 2 { ctx.print(2, y, s); }
-        else if y > TERM_HEIGHT - 7 { ctx.print_color(2, y, RGB::named(GREY), RGB::named(BLACK),  s); }
+        if y == TERM_HEIGHT - 2 { ctx.print(2, y, s); } else if y > TERM_HEIGHT - 7 { ctx.print_color(2, y, RGB::named(GREY), RGB::named(BLACK), s); }
         y -= 1;
     }
 
@@ -88,6 +87,44 @@ fn draw_tooltips(ecs: &World, ctx: &mut BTerm) {
                 y += 1;
             }
             ctx.print_color(arrow_pos.x, arrow_pos.y, RGB::named(WHITE), RGB::named(GREY), &"<-".to_string());
+        }
+    }
+}
+
+#[derive(PartialEq, Copy, Clone)]
+pub enum ItemMenuResult { Cancel, NoResponse, Selected }
+
+pub fn show_inventory(gs: &mut State, ctx: &mut BTerm) -> ItemMenuResult {
+    let player_entity = gs.ecs.fetch::<Entity>();
+    let names = gs.ecs.read_storage::<Name>();
+    let backpack = gs.ecs.read_storage::<InBackpack>();
+
+    let inventory = (&backpack, &names).join().filter(|item| item.0.owner == *player_entity);
+    let count = inventory.count();
+
+    let mut y = (25 - (count / 2)) as i32;
+    ctx.draw_box(15, y - 2, 31, (count + 3) as i32, RGB::named(WHITE), RGB::named(BLACK));
+    ctx.print_color(18, y - 2, RGB::named(YELLOW), RGB::named(BLACK), "Inventory");
+    ctx.print_color(18, y + count as i32 + 1, RGB::named(YELLOW), RGB::named(BLACK), "ESCAPE to cancel");
+
+    let mut j = 0;
+    for (_pack, name) in (&backpack, &names).join().filter(|item| item.0.owner == *player_entity) {
+        ctx.set(17, y, RGB::named(WHITE), RGB::named(BLACK), to_cp437('('));
+        ctx.set(18, y, RGB::named(YELLOW), RGB::named(BLACK), 97 + j as FontCharType);
+        ctx.set(19, y, RGB::named(WHITE), RGB::named(BLACK), to_cp437(')'));
+
+        ctx.print(21, y, &name.name.to_string());
+        y += 1;
+        j += 1;
+    }
+
+    match ctx.key {
+        None => ItemMenuResult::NoResponse,
+        Some(key) => {
+            match key {
+                VirtualKeyCode::Escape => ItemMenuResult::Cancel,
+                _ => ItemMenuResult::NoResponse,
+            }
         }
     }
 }

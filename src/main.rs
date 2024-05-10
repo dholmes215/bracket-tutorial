@@ -27,7 +27,7 @@ const TERM_WIDTH: i32 = 80;
 const TERM_HEIGHT: i32 = 50;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
-pub enum RunState { AwaitingInput, PreRun, PlayerTurn, MonsterTurn }
+pub enum RunState { AwaitingInput, PreRun, PlayerTurn, MonsterTurn, ShowInventory }
 
 struct State {
     pub ecs: World,
@@ -43,9 +43,9 @@ impl State {
         mapindex.run_now(&self.ecs);
         let mut melee_combat_system = MeleeCombatSystem {};
         melee_combat_system.run_now(&self.ecs);
-        let mut damage_system = DamageSystem{};
+        let mut damage_system = DamageSystem {};
         damage_system.run_now(&self.ecs);
-        let mut pickup = ItemCollectionSystem{};
+        let mut pickup = ItemCollectionSystem {};
         pickup.run_now(&self.ecs);
         self.ecs.maintain();
     }
@@ -54,6 +54,25 @@ impl State {
 impl GameState for State {
     fn tick(&mut self, ctx: &mut BTerm) {
         ctx.cls();
+
+
+        draw_map(&self.ecs, ctx);
+
+        {
+            let positions = self.ecs.read_storage::<Position>();
+            let renderables = self.ecs.read_storage::<Renderable>();
+            let map = self.ecs.fetch::<Map>();
+
+            for (pos, render) in (&positions, &renderables).join() {
+                let idx = map.xy_idx(pos.x, pos.y);
+                if map.visible_tiles[idx] {
+                    ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
+                }
+            }
+
+            gui::draw_ui(&self.ecs, ctx);
+        }
+
         let mut newrunstate;
         {
             let runstate = self.ecs.fetch::<RunState>();
@@ -76,6 +95,11 @@ impl GameState for State {
                 self.run_systems();
                 newrunstate = RunState::AwaitingInput;
             }
+            RunState::ShowInventory => {
+                if gui::show_inventory(self, ctx) == gui::ItemMenuResult::Cancel {
+                    newrunstate = RunState::AwaitingInput;
+                }
+            }
         }
 
         {
@@ -83,21 +107,6 @@ impl GameState for State {
             *runwriter = newrunstate;
         }
         damage_system::delete_the_dead(&mut self.ecs);
-
-        draw_map(&self.ecs, ctx);
-
-        let positions = self.ecs.read_storage::<Position>();
-        let renderables = self.ecs.read_storage::<Renderable>();
-        let map = self.ecs.fetch::<Map>();
-
-        for (pos, render) in (&positions, &renderables).join() {
-            let idx = map.xy_idx(pos.x, pos.y);
-            if map.visible_tiles[idx] {
-                ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
-            }
-        }
-
-        gui::draw_ui(&self.ecs, ctx);
     }
 }
 
@@ -148,7 +157,7 @@ fn main() -> BError {
     gs.ecs.insert(Point::new(player_x, player_y));
     gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::PreRun);
-    gs.ecs.insert(gamelog::GameLog{ entries: vec!["Welcome to Rusty Roguelike".to_string()]});
+    gs.ecs.insert(gamelog::GameLog { entries: vec!["Welcome to Rusty Roguelike".to_string()] });
 
     main_loop(context, gs)
 }
