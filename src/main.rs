@@ -9,11 +9,13 @@ mod damage_system;
 mod gui;
 mod gamelog;
 mod spawner;
+mod item_collection_system;
 
 use bracket_lib::prelude::*;
 use specs::prelude::*;
 use components::*;
 use crate::damage_system::DamageSystem;
+use crate::item_collection_system::ItemCollectionSystem;
 use crate::map::*;
 use crate::map_indexing_system::MapIndexingSystem;
 use crate::melee_combat_system::MeleeCombatSystem;
@@ -43,6 +45,8 @@ impl State {
         melee_combat_system.run_now(&self.ecs);
         let mut damage_system = DamageSystem{};
         damage_system.run_now(&self.ecs);
+        let mut pickup = ItemCollectionSystem{};
+        pickup.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -127,6 +131,8 @@ fn main() -> BError {
     gs.ecs.register::<SufferDamage>();
     gs.ecs.register::<Item>();
     gs.ecs.register::<Potion>();
+    gs.ecs.register::<InBackpack>();
+    gs.ecs.register::<WantsToPickupItem>();
 
     let map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();
