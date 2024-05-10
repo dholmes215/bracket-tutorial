@@ -7,6 +7,7 @@ mod map_indexing_system;
 mod melee_combat_system;
 mod damage_system;
 mod gui;
+mod gamelog;
 
 use bracket_lib::prelude::*;
 use specs::prelude::*;
@@ -180,6 +181,7 @@ fn main() -> BError {
     gs.ecs.insert(Point::new(player_x, player_y));
     gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::PreRun);
+    gs.ecs.insert(gamelog::GameLog{ entries: vec!["Welcome to Rusty Roguelike".to_string()]});
 
     main_loop(context, gs)
 }
