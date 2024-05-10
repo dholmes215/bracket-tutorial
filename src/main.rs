@@ -4,10 +4,13 @@ mod components;
 mod visibility_system;
 mod monster_ai_system;
 mod map_indexing_system;
+mod melee_combat_system;
+mod damage_system;
 
 use bracket_lib::prelude::*;
 use specs::prelude::*;
 use components::*;
+use crate::damage_system::DamageSystem;
 use crate::map::*;
 use crate::map_indexing_system::MapIndexingSystem;
 use crate::monster_ai_system::MonsterAI;
@@ -32,6 +35,9 @@ impl State {
         mob.run_now(&self.ecs);
         let mut mapindex = MapIndexingSystem {};
         mapindex.run_now(&self.ecs);
+        let mut damage_system = DamageSystem{};
+        damage_system.run_now(&self.ecs);
+        damage_system::delete_the_dead(&mut self.ecs);
         self.ecs.maintain();
     }
 }
@@ -89,6 +95,8 @@ fn main() -> BError {
     gs.ecs.register::<Name>();
     gs.ecs.register::<BlocksTile>();
     gs.ecs.register::<CombatStats>();
+    gs.ecs.register::<WantsToMelee>();
+    gs.ecs.register::<SufferDamage>();
 
     let map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();

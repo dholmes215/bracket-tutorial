@@ -206,6 +206,7 @@ name = "bracket-tutorial"
 version = "0.1.0"
 dependencies = [
  "bracket-lib",
+ "serde",
  "specs",
  "specs-derive",
 ]
@@ -1699,6 +1700,7 @@ dependencies = [
  "log",
  "nougat",
  "rayon",
+ "serde",
  "shred",
  "shrev",
  "tuple_utils",

@@ -1,7 +1,10 @@
-use specs_derive::Component;
+use specs::error::NoError;
+use specs_derive::{Component, ConvertSaveload};
 use specs::prelude::*;
+use specs::saveload::{ConvertSaveload, Marker};
 use bracket_lib::prelude::*;
 use bracket_lib::color::RGB;
+use serde::{Serialize, Deserialize};
 
 #[derive(Component, Debug)]
 pub struct Player {}
@@ -43,4 +46,25 @@ pub struct CombatStats {
     pub hp: i32,
     pub defense: i32,
     pub power: i32,
+}
+
+#[derive(Component, Debug, ConvertSaveload, Clone)]
+pub struct WantsToMelee {
+    pub target: Entity,
+}
+
+#[derive(Component, Debug)]
+pub struct SufferDamage {
+    pub amount: Vec<i32>
+}
+
+impl SufferDamage {
+    pub fn new_damage(store: &mut WriteStorage<SufferDamage>, victim: Entity, amount: i32) {
+        if let Some(suffering) = store.get_mut(victim) {
+            suffering.amount.push(amount);
+        } else {
+            let dmg = SufferDamage { amount: vec![amount] };
+            store.insert(victim, dmg).expect("Unable to insert damage");
+        }
+    }
 }
