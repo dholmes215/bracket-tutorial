@@ -1,19 +1,21 @@
 use bracket_lib::prelude::*;
 use specs::prelude::*;
+
 use crate::components::*;
 use crate::gamelog::GameLog;
 use crate::map::Map;
+use crate::TERM_HEIGHT;
 
 pub fn draw_ui(ecs: &World, ctx: &mut BTerm) {
-    ctx.draw_box(0, 43, 79, 6, RGB::named(WHITE), RGB::named(BLACK));
+    ctx.draw_box(0, TERM_HEIGHT - 7, 79, 6, RGB::named(WHITE), RGB::named(BLACK));
 
     let combat_stats = ecs.read_storage::<CombatStats>();
     let players = ecs.read_storage::<Player>();
     for (_player, stats) in (&players, &combat_stats).join() {
         let health = format!(" HP {} / {} ", stats.hp, stats.max_hp);
-        ctx.print_color(12, 43, RGB::named(YELLOW), RGB::named(BLACK), &health);
+        ctx.print_color(12, TERM_HEIGHT - 7, RGB::named(YELLOW), RGB::named(BLACK), &health);
 
-        ctx.draw_bar_horizontal(28, 43, 51, stats.hp, stats.max_hp, RGB::named(RED), RGB::named(BLACK));
+        ctx.draw_bar_horizontal(28, TERM_HEIGHT - 7, 51, stats.hp, stats.max_hp, RGB::named(RED), RGB::named(BLACK));
     }
 
     let log = ecs.fetch::<GameLog>();
@@ -24,10 +26,10 @@ pub fn draw_ui(ecs: &World, ctx: &mut BTerm) {
     //     y += 1;
     // }
 
-    let mut y = 48;
+    let mut y = TERM_HEIGHT - 2;
     for s in log.entries.iter().rev() {
-        if y == 48 { ctx.print(2, y, s); }
-        else if y > 43 { ctx.print_color(2, y, RGB::named(GREY), RGB::named(BLACK),  s); }
+        if y == TERM_HEIGHT - 2 { ctx.print(2, y, s); }
+        else if y > TERM_HEIGHT - 7 { ctx.print_color(2, y, RGB::named(GREY), RGB::named(BLACK),  s); }
         y -= 1;
     }
 
