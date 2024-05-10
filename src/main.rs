@@ -24,7 +24,6 @@ pub enum RunState { Paused, Running }
 
 struct State {
     pub ecs: World,
-    pub runstate: RunState,
 }
 
 impl State {
@@ -37,7 +36,6 @@ impl State {
         mapindex.run_now(&self.ecs);
         let mut damage_system = DamageSystem{};
         damage_system.run_now(&self.ecs);
-        damage_system::delete_the_dead(&mut self.ecs);
         self.ecs.maintain();
     }
 }
@@ -45,12 +43,23 @@ impl State {
 impl GameState for State {
     fn tick(&mut self, ctx: &mut BTerm) {
         ctx.cls();
+        let mut newrunstate;
+        {
+            let runstate = self.ecs.fetch::<RunState>();
+            newrunstate = *runstate;
+        }
 
-        if self.runstate == RunState::Running {
+        if newrunstate == RunState::Running {
             self.run_systems();
-            self.runstate = RunState::Paused;
+            damage_system::delete_the_dead(&mut self.ecs);
+            newrunstate = RunState::Paused;
         } else {
-            self.runstate = player::player_input(self, ctx);
+            newrunstate = player::player_input(self, ctx);
+        }
+
+        {
+            let mut runwriter = self.ecs.write_resource::<RunState>();
+            *runwriter = newrunstate;
         }
 
         draw_map(&self.ecs, ctx);
@@ -85,7 +94,6 @@ fn main() -> BError {
 
     let mut gs = State {
         ecs: World::new(),
-        runstate: RunState::Running,
     };
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
@@ -119,6 +127,7 @@ fn main() -> BError {
             }
         }
 
+        // Create monster
         gs.ecs.create_entity()
             .with(Position { x, y })
             .with(Renderable {
@@ -136,8 +145,11 @@ fn main() -> BError {
 
     gs.ecs.insert(map);
     gs.ecs.insert(Point::new(player_x, player_y));
+    gs.ecs.insert(RunState::Running);
 
-    gs.ecs.create_entity()
+    // Create player
+    let player_entity = gs.ecs
+        .create_entity()
         .with(Position { x: player_x, y: player_y })
         .with(Renderable {
             glyph: to_cp437('@'),
@@ -147,9 +159,10 @@ fn main() -> BError {
         .with(Player {})
         .with(Viewshed { visible_tiles: Vec::new(), range: 8, dirty: true })
         .with(Name { name: "Player".to_string() })
-        .with(BlocksTile {})
         .with(CombatStats { max_hp: 30, hp: 30, defense: 2, power: 5 })
         .build();
+
+    gs.ecs.insert(player_entity);
 
     main_loop(context, gs)
 }
