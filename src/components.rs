@@ -6,9 +6,6 @@ use bracket_lib::prelude::*;
 use bracket_lib::color::RGB;
 use serde::{Serialize, Deserialize};
 
-#[derive(Component, Debug)]
-pub struct Player {}
-
 #[derive(Component)]
 pub struct Position {
     pub x: i32,
@@ -21,6 +18,9 @@ pub struct Renderable {
     pub fg: RGB,
     pub bg: RGB,
 }
+
+#[derive(Component, Debug)]
+pub struct Player {}
 
 #[derive(Component)]
 pub struct Viewshed {
@@ -48,7 +48,7 @@ pub struct CombatStats {
     pub power: i32,
 }
 
-#[derive(Component, Debug, ConvertSaveload, Clone)]
+#[derive(Component, Debug, Clone)]
 pub struct WantsToMelee {
     pub target: Entity,
 }

@@ -124,6 +124,21 @@ fn main() -> BError {
     let map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();
 
+    // Create player
+    let player_entity = gs.ecs
+        .create_entity()
+        .with(Position { x: player_x, y: player_y })
+        .with(Renderable {
+            glyph: to_cp437('@'),
+            fg: RGB::named(YELLOW),
+            bg: RGB::named(BLACK),
+        })
+        .with(Player {})
+        .with(Viewshed { visible_tiles: Vec::new(), range: 8, dirty: true })
+        .with(Name { name: "Player".to_string() })
+        .with(CombatStats { max_hp: 30, hp: 30, defense: 2, power: 5 })
+        .build();
+
     let mut rng = RandomNumberGenerator::new();
     for (i, room) in map.rooms.iter().skip(1).enumerate() {
         let (x, y) = room.center();
@@ -160,24 +175,8 @@ fn main() -> BError {
 
     gs.ecs.insert(map);
     gs.ecs.insert(Point::new(player_x, player_y));
-    gs.ecs.insert(RunState::PreRun);
-
-    // Create player
-    let player_entity = gs.ecs
-        .create_entity()
-        .with(Position { x: player_x, y: player_y })
-        .with(Renderable {
-            glyph: to_cp437('@'),
-            fg: RGB::named(YELLOW),
-            bg: RGB::named(BLACK),
-        })
-        .with(Player {})
-        .with(Viewshed { visible_tiles: Vec::new(), range: 8, dirty: true })
-        .with(Name { name: "Player".to_string() })
-        .with(CombatStats { max_hp: 30, hp: 30, defense: 2, power: 5 })
-        .build();
-
     gs.ecs.insert(player_entity);
+    gs.ecs.insert(RunState::PreRun);
 
     main_loop(context, gs)
 }
