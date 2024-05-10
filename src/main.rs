@@ -6,6 +6,7 @@ mod monster_ai_system;
 mod map_indexing_system;
 mod melee_combat_system;
 mod damage_system;
+mod gui;
 
 use bracket_lib::prelude::*;
 use specs::prelude::*;
@@ -19,7 +20,7 @@ use crate::player::player_input;
 use crate::visibility_system::VisibilitySystem;
 
 const TERM_WIDTH: i32 = 80;
-const TERM_HEIGHT: i32 = 40;
+const TERM_HEIGHT: i32 = 50;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum RunState { AwaitingInput, PreRun, PlayerTurn, MonsterTurn }
@@ -59,7 +60,7 @@ impl GameState for State {
                 newrunstate = RunState::AwaitingInput;
             }
             RunState::AwaitingInput => {
-                newrunstate = player_input(self,ctx);
+                newrunstate = player_input(self, ctx);
             }
             RunState::PlayerTurn => {
                 self.run_systems();
@@ -89,6 +90,8 @@ impl GameState for State {
                 ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
             }
         }
+
+        gui::draw_ui(&self.ecs, ctx);
     }
 }
 

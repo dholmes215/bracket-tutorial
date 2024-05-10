@@ -3,10 +3,10 @@ use bracket_lib::algorithm_traits::{BaseMap, SmallVec};
 use bracket_lib::prelude::{Algorithm2D, BTerm, DistanceAlg, Point, RandomNumberGenerator, to_cp437};
 use bracket_lib::color::RGB;
 use specs::prelude::*;
-use crate::{TERM_HEIGHT, TERM_WIDTH};
 
-const DEFAULT_MAP_WIDTH: i32 = TERM_WIDTH;
-const DEFAULT_MAP_HEIGHT: i32 = TERM_HEIGHT;
+const MAPWIDTH: usize = 80;
+const MAPHEIGHT: usize = 50;
+const MAPCOUNT: usize = MAPHEIGHT * MAPWIDTH;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum TileType {
@@ -77,16 +77,15 @@ impl Map {
     }
 
     pub fn new_map_rooms_and_corridors() -> Map {
-        let map_size: usize = (DEFAULT_MAP_WIDTH * DEFAULT_MAP_HEIGHT) as usize;
         let mut map = Map {
-            tiles: vec![TileType::Wall; map_size],
+            tiles: vec![TileType::Wall; MAPCOUNT],
             rooms: Vec::new(),
-            width: DEFAULT_MAP_WIDTH,
-            height: DEFAULT_MAP_HEIGHT,
-            revealed_tiles: vec![false; map_size],
-            visible_tiles: vec![false; map_size],
-            blocked: vec![false; map_size],
-            tile_content: vec![Vec::new(); map_size]
+            width: MAPWIDTH as i32,
+            height: MAPHEIGHT as i32,
+            revealed_tiles: vec![false; MAPCOUNT],
+            visible_tiles: vec![false; MAPCOUNT],
+            blocked: vec![false; MAPCOUNT],
+            tile_content: vec![Vec::new(); MAPCOUNT]
         };
 
         const MAX_ROOMS: i32 = 30;
