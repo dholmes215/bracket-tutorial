@@ -21,7 +21,7 @@ use crate::visibility_system::VisibilitySystem;
 const TERM_WIDTH: i32 = 80;
 const TERM_HEIGHT: i32 = 40;
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Copy, Clone, Debug)]
 pub enum RunState { AwaitingInput, PreRun, PlayerTurn, MonsterTurn }
 
 struct State {
