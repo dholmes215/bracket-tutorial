@@ -10,11 +10,14 @@ mod gui;
 mod gamelog;
 mod spawner;
 mod item_collection_system;
+mod inventory_system;
 
 use bracket_lib::prelude::*;
 use specs::prelude::*;
 use components::*;
 use crate::damage_system::DamageSystem;
+use crate::gui::ItemMenuResult;
+use crate::inventory_system::PotionUseSystem;
 use crate::item_collection_system::ItemCollectionSystem;
 use crate::map::*;
 use crate::map_indexing_system::MapIndexingSystem;
@@ -47,6 +50,8 @@ impl State {
         damage_system.run_now(&self.ecs);
         let mut pickup = ItemCollectionSystem {};
         pickup.run_now(&self.ecs);
+        let mut potions = PotionUseSystem {};
+        potions.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -82,6 +87,7 @@ impl GameState for State {
         match newrunstate {
             RunState::PreRun => {
                 self.run_systems();
+                self.ecs.maintain();
                 newrunstate = RunState::AwaitingInput;
             }
             RunState::AwaitingInput => {
@@ -89,15 +95,24 @@ impl GameState for State {
             }
             RunState::PlayerTurn => {
                 self.run_systems();
+                self.ecs.maintain();
                 newrunstate = RunState::MonsterTurn;
             }
             RunState::MonsterTurn => {
                 self.run_systems();
+                self.ecs.maintain();
                 newrunstate = RunState::AwaitingInput;
             }
             RunState::ShowInventory => {
-                if gui::show_inventory(self, ctx) == gui::ItemMenuResult::Cancel {
-                    newrunstate = RunState::AwaitingInput;
+                let result = gui::show_inventory(self, ctx);
+                match result {
+                    ItemMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
+                    ItemMenuResult::NoResponse => {}
+                    ItemMenuResult::Selected(item_entity) => {
+                        let mut intent = self.ecs.write_storage::<WantsToDrinkPotion>();
+                        intent.insert(*self.ecs.fetch::<Entity>(), WantsToDrinkPotion { potion: item_entity }).expect("Unable to insert intent");
+                        newrunstate = RunState::PlayerTurn;
+                    }
                 }
             }
         }
@@ -142,6 +157,7 @@ fn main() -> BError {
     gs.ecs.register::<Potion>();
     gs.ecs.register::<InBackpack>();
     gs.ecs.register::<WantsToPickupItem>();
+    gs.ecs.register::<WantsToDrinkPotion>();
 
     let map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();
