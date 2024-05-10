@@ -52,7 +52,7 @@ pub struct WantsToMelee {
 
 #[derive(Component, Debug)]
 pub struct SufferDamage {
-    pub amount: Vec<i32>
+    pub amount: Vec<i32>,
 }
 
 impl SufferDamage {
@@ -64,4 +64,12 @@ impl SufferDamage {
             store.insert(victim, dmg).expect("Unable to insert damage");
         }
     }
+}
+
+#[derive(Component, Debug)]
+pub struct Item {}
+
+#[derive(Component, Debug)]
+pub struct Potion {
+    pub heal_amount: i32,
 }
