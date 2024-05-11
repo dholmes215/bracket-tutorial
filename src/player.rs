@@ -4,6 +4,7 @@ use std::cmp::{max, min};
 use crate::{RunState, State};
 use crate::components::{CombatStats, Item, Player, Position, Viewshed, WantsToMelee, WantsToPickupItem};
 use crate::gamelog::GameLog;
+use crate::ItemMenuOp::{Drop, Use};
 use crate::map::Map;
 
 pub fn player_input(gs: &mut State, ctx: &mut BTerm) -> RunState {
@@ -41,8 +42,8 @@ pub fn player_input(gs: &mut State, ctx: &mut BTerm) -> RunState {
             VirtualKeyCode::B => try_move_player(-1, 1, &mut gs.ecs),
 
             VirtualKeyCode::G => get_item(&mut gs.ecs),
-            VirtualKeyCode::I => return RunState::ShowInventory,
-            VirtualKeyCode::D => return RunState::ShowDropItem,
+            VirtualKeyCode::I => return RunState::ItemMenu(Use),
+            VirtualKeyCode::D => return RunState::ItemMenu(Drop),
 
             _ => { return RunState::AwaitingInput; }
         }

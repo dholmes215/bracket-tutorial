@@ -30,7 +30,13 @@ const TERM_WIDTH: i32 = 80;
 const TERM_HEIGHT: i32 = 50;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
-pub enum RunState { AwaitingInput, PreRun, PlayerTurn, MonsterTurn, ShowInventory, ShowDropItem }
+pub enum RunState { AwaitingInput, PreRun, PlayerTurn, MonsterTurn, ItemMenu(ItemMenuOp) }
+
+#[derive(PartialEq, Copy, Clone, Debug)]
+pub enum ItemMenuOp {
+    Use,
+    Drop,
+}
 
 struct State {
     pub ecs: World,
@@ -105,26 +111,25 @@ impl GameState for State {
                 self.ecs.maintain();
                 newrunstate = RunState::AwaitingInput;
             }
-            RunState::ShowInventory => {
-                let result = gui::show_inventory(self, ctx);
+            RunState::ItemMenu(op) => {
+                let result = match op {
+                    ItemMenuOp::Use => gui::show_inventory(self, ctx),
+                    ItemMenuOp::Drop => gui::drop_item_menu(self, ctx),
+                };
                 match result {
                     ItemMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
                     ItemMenuResult::NoResponse => {}
                     ItemMenuResult::Selected(item_entity) => {
-                        let mut intent = self.ecs.write_storage::<WantsToDrinkPotion>();
-                        intent.insert(*self.ecs.fetch::<Entity>(), WantsToDrinkPotion { potion: item_entity }).expect("Unable to insert intent");
-                        newrunstate = RunState::PlayerTurn;
-                    }
-                }
-            }
-            RunState::ShowDropItem => {
-                let result = gui::drop_item_menu(self, ctx);
-                match result {
-                    ItemMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
-                    ItemMenuResult::NoResponse => {}
-                    ItemMenuResult::Selected(item_entity) => {
-                        let mut intent = self.ecs.write_storage::<WantsToDropItem>();
-                        intent.insert(*self.ecs.fetch::<Entity>(), WantsToDropItem { item: item_entity }).expect("Unable to insert intent");
+                        match op {
+                            ItemMenuOp::Use => {
+                                let mut intent = self.ecs.write_storage::<WantsToDrinkPotion>();
+                                intent.insert(*self.ecs.fetch::<Entity>(), WantsToDrinkPotion { potion: item_entity }).expect("Unable to insert intent");
+                            }
+                            ItemMenuOp::Drop => {
+                                let mut intent = self.ecs.write_storage::<WantsToDropItem>();
+                                intent.insert(*self.ecs.fetch::<Entity>(), WantsToDropItem { item: item_entity }).expect("Unable to insert intent");
+                            }
+                        }
                         newrunstate = RunState::PlayerTurn;
                     }
                 }
