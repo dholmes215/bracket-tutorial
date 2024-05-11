@@ -3,7 +3,7 @@ use specs::prelude::*;
 use bracket_lib::prelude::*;
 use bracket_lib::color::RGB;
 
-#[derive(Component)]
+#[derive(Component, Copy, Clone)]
 pub struct Position {
     pub x: i32,
     pub y: i32,
@@ -88,4 +88,9 @@ pub struct WantsToPickupItem {
 #[derive(Component, Debug)]
 pub struct WantsToDrinkPotion {
     pub potion: Entity,
+}
+
+#[derive(Component, Debug)]
+pub struct WantsToDropItem {
+    pub item: Entity
 }

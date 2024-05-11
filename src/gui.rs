@@ -98,7 +98,7 @@ pub enum ItemMenuResult {
     Selected(Entity),
 }
 
-pub fn show_inventory(gs: &mut State, ctx: &mut BTerm) -> ItemMenuResult {
+pub fn item_menu(gs: &mut State, ctx: &mut BTerm, title: &str) -> ItemMenuResult {
     let player_entity = gs.ecs.fetch::<Entity>();
     let names = gs.ecs.read_storage::<Name>();
     let backpack = gs.ecs.read_storage::<InBackpack>();
@@ -109,7 +109,7 @@ pub fn show_inventory(gs: &mut State, ctx: &mut BTerm) -> ItemMenuResult {
 
     let mut y = (25 - (count / 2)) as i32;
     ctx.draw_box(15, y - 2, 31, (count + 3) as i32, RGB::named(WHITE), RGB::named(BLACK));
-    ctx.print_color(18, y - 2, RGB::named(YELLOW), RGB::named(BLACK), "Inventory");
+    ctx.print_color(18, y - 2, RGB::named(YELLOW), RGB::named(BLACK), title);
     ctx.print_color(18, y + count as i32 + 1, RGB::named(YELLOW), RGB::named(BLACK), "ESCAPE to cancel");
 
     let mut equippable: Vec<Entity> = Vec::new();
@@ -140,4 +140,14 @@ pub fn show_inventory(gs: &mut State, ctx: &mut BTerm) -> ItemMenuResult {
             }
         }
     }
+}
+
+
+pub fn show_inventory(gs: &mut State, ctx: &mut BTerm) -> ItemMenuResult {
+    item_menu(gs, ctx, "Inventory")
+}
+
+
+pub fn drop_item_menu(gs: &mut State, ctx: &mut BTerm) -> ItemMenuResult {
+    item_menu(gs, ctx, "Drop Which Item?")
 }

@@ -17,7 +17,7 @@ use specs::prelude::*;
 use components::*;
 use crate::damage_system::DamageSystem;
 use crate::gui::ItemMenuResult;
-use crate::inventory_system::PotionUseSystem;
+use crate::inventory_system::{ItemDropSystem, PotionUseSystem};
 use crate::item_collection_system::ItemCollectionSystem;
 use crate::map::*;
 use crate::map_indexing_system::MapIndexingSystem;
@@ -30,7 +30,7 @@ const TERM_WIDTH: i32 = 80;
 const TERM_HEIGHT: i32 = 50;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
-pub enum RunState { AwaitingInput, PreRun, PlayerTurn, MonsterTurn, ShowInventory }
+pub enum RunState { AwaitingInput, PreRun, PlayerTurn, MonsterTurn, ShowInventory, ShowDropItem }
 
 struct State {
     pub ecs: World,
@@ -52,6 +52,8 @@ impl State {
         pickup.run_now(&self.ecs);
         let mut potions = PotionUseSystem {};
         potions.run_now(&self.ecs);
+        let mut drop_items = ItemDropSystem {};
+        drop_items.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -115,6 +117,18 @@ impl GameState for State {
                     }
                 }
             }
+            RunState::ShowDropItem => {
+                let result = gui::drop_item_menu(self, ctx);
+                match result {
+                    ItemMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
+                    ItemMenuResult::NoResponse => {}
+                    ItemMenuResult::Selected(item_entity) => {
+                        let mut intent = self.ecs.write_storage::<WantsToDropItem>();
+                        intent.insert(*self.ecs.fetch::<Entity>(), WantsToDropItem { item: item_entity }).expect("Unable to insert intent");
+                        newrunstate = RunState::PlayerTurn;
+                    }
+                }
+            }
         }
 
         {
@@ -158,6 +172,7 @@ fn main() -> BError {
     gs.ecs.register::<InBackpack>();
     gs.ecs.register::<WantsToPickupItem>();
     gs.ecs.register::<WantsToDrinkPotion>();
+    gs.ecs.register::<WantsToDropItem>();
 
     let map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();
