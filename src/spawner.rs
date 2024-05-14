@@ -2,7 +2,7 @@ use bracket_lib::color::{BLACK, MAGENTA, RED, RGB, YELLOW};
 use bracket_lib::prelude::{FontCharType, to_cp437};
 use bracket_lib::random::RandomNumberGenerator;
 use specs::prelude::*;
-use crate::components::{BlocksTile, CombatStats, Item, Monster, Name, Player, Position, Potion, Renderable, Viewshed};
+use crate::components::{BlocksTile, CombatStats, Item, Monster, Name, Player, Position, ProvidesHealing, Renderable, Viewshed};
 use crate::map::{MAPWIDTH, Rect};
 
 const MAX_MONSTERS: i32 = 4;
@@ -124,6 +124,6 @@ fn health_potion(ecs: &mut World, x: i32, y: i32) {
         })
         .with(Name { name: "Health Potion".to_string() })
         .with(Item {})
-        .with(Potion { heal_amount: 8 })
+        .with(ProvidesHealing { heal_amount: 8 })
         .build();
 }

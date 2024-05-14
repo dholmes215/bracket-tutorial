@@ -2,6 +2,7 @@ use specs_derive::Component;
 use specs::prelude::*;
 use bracket_lib::prelude::*;
 use bracket_lib::color::RGB;
+use crate::State;
 
 #[derive(Component, Copy, Clone)]
 pub struct Position {
@@ -71,7 +72,7 @@ impl SufferDamage {
 pub struct Item {}
 
 #[derive(Component, Debug)]
-pub struct Potion {
+pub struct ProvidesHealing {
     pub heal_amount: i32,
 }
 
@@ -87,11 +88,34 @@ pub struct WantsToPickupItem {
 }
 
 #[derive(Component, Debug)]
-pub struct WantsToDrinkPotion {
-    pub potion: Entity,
+pub struct WantsToUseItem {
+    pub item: Entity,
 }
 
 #[derive(Component, Debug)]
 pub struct WantsToDropItem {
     pub item: Entity
+}
+
+#[derive(Component, Debug)]
+pub struct Consumable {}
+
+pub fn register_all_components(gs: &mut State) {
+    gs.ecs.register::<Position>();
+    gs.ecs.register::<Renderable>();
+    gs.ecs.register::<Player>();
+    gs.ecs.register::<Viewshed>();
+    gs.ecs.register::<Monster>();
+    gs.ecs.register::<Name>();
+    gs.ecs.register::<BlocksTile>();
+    gs.ecs.register::<CombatStats>();
+    gs.ecs.register::<WantsToMelee>();
+    gs.ecs.register::<SufferDamage>();
+    gs.ecs.register::<Item>();
+    gs.ecs.register::<ProvidesHealing>();
+    gs.ecs.register::<InBackpack>();
+    gs.ecs.register::<WantsToPickupItem>();
+    gs.ecs.register::<WantsToUseItem>();
+    gs.ecs.register::<WantsToDropItem>();
+    gs.ecs.register::<Consumable>();
 }
