@@ -100,6 +100,16 @@ pub struct WantsToDropItem {
 #[derive(Component, Debug)]
 pub struct Consumable {}
 
+#[derive(Component, Debug)]
+pub struct Ranged {
+    pub range: i32,
+}
+
+#[derive(Component, Debug)]
+pub struct InflictsDamage {
+    pub damage: i32,
+}
+
 pub fn register_all_components(gs: &mut State) {
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
@@ -118,4 +128,6 @@ pub fn register_all_components(gs: &mut State) {
     gs.ecs.register::<WantsToUseItem>();
     gs.ecs.register::<WantsToDropItem>();
     gs.ecs.register::<Consumable>();
+    gs.ecs.register::<Ranged>();
+    gs.ecs.register::<InflictsDamage>();
 }
