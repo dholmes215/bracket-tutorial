@@ -14,6 +14,7 @@ mod inventory_system;
 
 use bracket_lib::prelude::*;
 use specs::prelude::*;
+use specs::saveload::SimpleMarkerAllocator;
 use components::*;
 use crate::damage_system::DamageSystem;
 use crate::gui::{ItemMenuResult, MainMenuResult, MainMenuSelection, TargetingResult};
@@ -231,6 +232,7 @@ fn main() -> BError {
     gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::PreRun);
     gs.ecs.insert(gamelog::GameLog { entries: vec!["Welcome to Rusty Roguelike".to_string()] });
+    gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 
     main_loop(context, gs)
 }

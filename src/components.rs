@@ -2,6 +2,7 @@ use specs_derive::Component;
 use specs::prelude::*;
 use bracket_lib::prelude::*;
 use bracket_lib::color::RGB;
+use specs::saveload::SimpleMarker;
 use crate::State;
 
 #[derive(Component, Copy, Clone)]
@@ -121,6 +122,8 @@ pub struct Confusion {
     pub turns: i32,
 }
 
+pub struct SerializeMe;
+
 pub fn register_all_components(gs: &mut State) {
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
@@ -143,4 +146,5 @@ pub fn register_all_components(gs: &mut State) {
     gs.ecs.register::<InflictsDamage>();
     gs.ecs.register::<AreaOfEffect>();
     gs.ecs.register::<Confusion>();
+    gs.ecs.register::<SimpleMarker<SerializeMe>>();
 }
