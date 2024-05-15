@@ -116,6 +116,11 @@ pub struct AreaOfEffect {
     pub radius: i32,
 }
 
+#[derive(Component, Debug)]
+pub struct Confusion {
+    pub turns: i32,
+}
+
 pub fn register_all_components(gs: &mut State) {
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
@@ -137,4 +142,5 @@ pub fn register_all_components(gs: &mut State) {
     gs.ecs.register::<Ranged>();
     gs.ecs.register::<InflictsDamage>();
     gs.ecs.register::<AreaOfEffect>();
+    gs.ecs.register::<Confusion>();
 }

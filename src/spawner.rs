@@ -1,8 +1,8 @@
-use bracket_lib::color::{BLACK, CYAN, MAGENTA, ORANGE, RED, RGB, YELLOW};
+use bracket_lib::color::{BLACK, CYAN, MAGENTA, ORANGE, PINK, RED, RGB, YELLOW};
 use bracket_lib::prelude::{FontCharType, to_cp437};
 use bracket_lib::random::RandomNumberGenerator;
 use specs::prelude::*;
-use crate::components::{AreaOfEffect, BlocksTile, CombatStats, Consumable, InflictsDamage, Item, Monster, Name, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed};
+use crate::components::{AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, InflictsDamage, Item, Monster, Name, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed};
 use crate::map::{MAPWIDTH, Rect};
 
 const MAX_MONSTERS: i32 = 4;
@@ -122,6 +122,7 @@ fn random_item(ecs: &mut World, x: i32, y: i32) {
     match roll {
         1 => { health_potion(ecs, x, y) }
         2 => { fireball_scroll(ecs, x, y) }
+        3 => { confusion_scroll(ecs, x, y) }
         _ => { magic_missile_scroll(ecs, x, y) }
     }
 }
@@ -174,5 +175,22 @@ fn magic_missile_scroll(ecs: &mut World, x: i32, y: i32) {
         .with(Consumable {})
         .with(Ranged { range: 6 })
         .with(InflictsDamage { damage: 8 })
+        .build();
+}
+
+fn confusion_scroll(ecs: &mut World, x: i32, y: i32) {
+    ecs.create_entity()
+        .with(Position { x, y })
+        .with(Renderable {
+            glyph: to_cp437(')'),
+            fg: RGB::named(PINK),
+            bg: RGB::named(BLACK),
+            render_order: 2,
+        })
+        .with(Name { name: "Confusion Scroll".to_string() })
+        .with(Item {})
+        .with(Consumable {})
+        .with(Ranged { range: 6 })
+        .with(Confusion { turns: 4 })
         .build();
 }
