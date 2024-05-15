@@ -1,8 +1,8 @@
-use bracket_lib::color::{BLACK, CYAN, MAGENTA, RED, RGB, YELLOW};
+use bracket_lib::color::{BLACK, CYAN, MAGENTA, ORANGE, RED, RGB, YELLOW};
 use bracket_lib::prelude::{FontCharType, to_cp437};
 use bracket_lib::random::RandomNumberGenerator;
 use specs::prelude::*;
-use crate::components::{BlocksTile, CombatStats, Consumable, InflictsDamage, Item, Monster, Name, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed};
+use crate::components::{AreaOfEffect, BlocksTile, CombatStats, Consumable, InflictsDamage, Item, Monster, Name, Player, Position, ProvidesHealing, Ranged, Renderable, Viewshed};
 use crate::map::{MAPWIDTH, Rect};
 
 const MAX_MONSTERS: i32 = 4;
@@ -117,10 +117,11 @@ fn random_item(ecs: &mut World, x: i32, y: i32) {
     let roll: i32;
     {
         let mut rng = ecs.write_resource::<RandomNumberGenerator>();
-        roll = rng.roll_dice(1, 2);
+        roll = rng.roll_dice(1, 3);
     }
     match roll {
         1 => { health_potion(ecs, x, y) }
+        2 => { fireball_scroll(ecs, x, y) }
         _ => { magic_missile_scroll(ecs, x, y) }
     }
 }
@@ -138,6 +139,24 @@ fn health_potion(ecs: &mut World, x: i32, y: i32) {
         .with(Item {})
         .with(Consumable {})
         .with(ProvidesHealing { heal_amount: 8 })
+        .build();
+}
+
+fn fireball_scroll(ecs: &mut World, x: i32, y: i32) {
+    ecs.create_entity()
+        .with(Position { x, y })
+        .with(Renderable {
+            glyph: to_cp437(')'),
+            fg: RGB::named(ORANGE),
+            bg: RGB::named(BLACK),
+            render_order: 2,
+        })
+        .with(Name { name: "Fireball Scroll".to_string() })
+        .with(Item {})
+        .with(Consumable {})
+        .with(Ranged { range: 6 })
+        .with(InflictsDamage { damage: 20 })
+        .with(AreaOfEffect { radius: 3 })
         .build();
 }
 
