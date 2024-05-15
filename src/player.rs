@@ -45,6 +45,9 @@ pub fn player_input(gs: &mut State, ctx: &mut BTerm) -> RunState {
             VirtualKeyCode::I => return RunState::ItemMenu(Use),
             VirtualKeyCode::D => return RunState::ItemMenu(Drop),
 
+            // Save and Quit
+            VirtualKeyCode::Escape => return RunState::SaveGame,
+
             _ => { return RunState::AwaitingInput; }
         }
     }

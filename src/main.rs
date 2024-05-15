@@ -38,7 +38,8 @@ pub enum RunState {
     MonsterTurn,
     ItemMenu(ItemMenuOp),
     ShowTargeting { range: i32, item: Entity },
-    MainMenu { menu_selection: gui::MainMenuSelection },
+    MainMenu { menu_selection: MainMenuSelection },
+    SaveGame
 }
 
 #[derive(PartialEq, Copy, Clone, Debug)]
@@ -174,10 +175,13 @@ impl GameState for State {
                         match selected {
                             MainMenuSelection::NewGame => newrunstate = RunState::PreRun,
                             MainMenuSelection::LoadGame => newrunstate = RunState::PreRun,
-                            MainMenuSelection::Quit => ::std::process::exit(0),
+                            MainMenuSelection::Quit => std::process::exit(0),
                         }
                     }
                 }
+            }
+            RunState::SaveGame => {
+                newrunstate = RunState::MainMenu { menu_selection: MainMenuSelection::LoadGame };
             }
         }
 
