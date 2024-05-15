@@ -4,7 +4,7 @@ use specs::prelude::*;
 use crate::components::*;
 use crate::gamelog::GameLog;
 use crate::map::Map;
-use crate::{State, TERM_HEIGHT};
+use crate::{RunState, State, TERM_HEIGHT};
 
 pub fn draw_ui(ecs: &World, ctx: &mut BTerm) {
     ctx.draw_box(0, TERM_HEIGHT - 7, 79, 6, RGB::named(WHITE), RGB::named(BLACK));
@@ -102,7 +102,7 @@ pub enum ItemMenuResult {
 pub enum TargetingResult {
     Cancel,
     NoResponse,
-    SelectedPoint(Point)
+    SelectedPoint(Point),
 }
 
 pub fn item_menu(gs: &mut State, ctx: &mut BTerm, title: &str) -> ItemMenuResult {
@@ -143,7 +143,7 @@ pub fn item_menu(gs: &mut State, ctx: &mut BTerm, title: &str) -> ItemMenuResult
                         return ItemMenuResult::SelectedItem(equippable[selection as usize]);
                     }
                     ItemMenuResult::NoResponse
-                },
+                }
             }
         }
     }
@@ -194,9 +194,62 @@ pub fn ranged_target(gs: &mut State, ctx: &mut BTerm, range: i32) -> TargetingRe
     } else {
         ctx.set_bg(mouse_pos.0, mouse_pos.1, RGB::named(RED));
         if ctx.left_click {
-            return TargetingResult::Cancel
+            return TargetingResult::Cancel;
         }
     }
 
     TargetingResult::NoResponse
+}
+
+#[derive(PartialEq, Copy, Clone, Debug)]
+pub enum MainMenuSelection { NewGame, LoadGame, Quit }
+
+#[derive(PartialEq, Copy, Clone)]
+pub enum MainMenuResult { NoSelection { selected: MainMenuSelection }, Selected { selected: MainMenuSelection } }
+
+pub fn main_menu(gs: &mut State, ctx: &mut BTerm) -> MainMenuResult {
+    use MainMenuSelection::*;
+    use MainMenuResult::*;
+    let runstate = gs.ecs.fetch::<RunState>();
+
+    ctx.print_color_centered(15, RGB::named(YELLOW), RGB::named(BLACK), "Rust Roguelike Tutorial");
+
+    if let RunState::MainMenu { menu_selection: selected } = *runstate {
+        let get_color = |s| if selected == s { RGB::named(MAGENTA) } else { RGB::named(WHITE) };
+        ctx.print_color_centered(24, get_color(NewGame), RGB::named(BLACK), "Begin New Game");
+        ctx.print_color_centered(25, get_color(LoadGame), RGB::named(BLACK), "Load Game");
+        ctx.print_color_centered(26, get_color(Quit), RGB::named(BLACK), "Quit");
+
+        return match ctx.key {
+            None => NoSelection { selected },
+            Some(key) => {
+                match key {
+                    VirtualKeyCode::Escape => NoSelection { selected: Quit },
+                    VirtualKeyCode::Up => {
+                        // TODO: Rewrite these to not hardcode every element
+                        NoSelection {
+                            selected: match selected {
+                                NewGame => Quit,
+                                LoadGame => NewGame,
+                                Quit => LoadGame,
+                            }
+                        }
+                    }
+                    VirtualKeyCode::Down => {
+                        NoSelection {
+                            selected: match selected {
+                                NewGame => LoadGame,
+                                LoadGame => Quit,
+                                Quit => NewGame,
+                            }
+                        }
+                    }
+                    VirtualKeyCode::Return => Selected { selected },
+                    _ => NoSelection { selected },
+                }
+            }
+        };
+    }
+
+    NoSelection { selected: NewGame }
 }

@@ -16,7 +16,7 @@ use bracket_lib::prelude::*;
 use specs::prelude::*;
 use components::*;
 use crate::damage_system::DamageSystem;
-use crate::gui::{ItemMenuResult, TargetingResult};
+use crate::gui::{ItemMenuResult, MainMenuResult, MainMenuSelection, TargetingResult};
 use crate::inventory_system::{ItemDropSystem, ItemUseSystem};
 use crate::item_collection_system::ItemCollectionSystem;
 use crate::map::*;
@@ -31,7 +31,15 @@ const TERM_WIDTH: i32 = 80;
 const TERM_HEIGHT: i32 = 50;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
-pub enum RunState { AwaitingInput, PreRun, PlayerTurn, MonsterTurn, ItemMenu(ItemMenuOp), ShowTargeting { range: i32, item: Entity } }
+pub enum RunState {
+    AwaitingInput,
+    PreRun,
+    PlayerTurn,
+    MonsterTurn,
+    ItemMenu(ItemMenuOp),
+    ShowTargeting { range: i32, item: Entity },
+    MainMenu { menu_selection: gui::MainMenuSelection },
+}
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum ItemMenuOp {
@@ -67,36 +75,37 @@ impl State {
 
 impl GameState for State {
     fn tick(&mut self, ctx: &mut BTerm) {
-        ctx.cls();
-
-        draw_map(&self.ecs, ctx);
-
-        {
-            let positions = self.ecs.read_storage::<Position>();
-            let renderables = self.ecs.read_storage::<Renderable>();
-            let map = self.ecs.fetch::<Map>();
-
-            for (pos, render) in (&positions, &renderables).join() {
-                let idx = map.xy_idx(pos.x, pos.y);
-                if map.visible_tiles[idx] {
-                    ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
-                }
-            }
-
-            let mut data = (&positions, &renderables).join().collect::<Vec<_>>();
-            data.sort_by(|&a, &b| b.1.render_order.cmp(&a.1.render_order));
-            for (pos, render) in data.iter() {
-                let idx = map.xy_idx(pos.x, pos.y);
-                if map.visible_tiles[idx] { ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph) }
-            }
-
-            gui::draw_ui(&self.ecs, ctx);
-        }
-
         let mut newrunstate;
         {
             let runstate = self.ecs.fetch::<RunState>();
             newrunstate = *runstate;
+        }
+
+        ctx.cls();
+
+        match newrunstate {
+            RunState::MainMenu {..} => {}
+            _ => {
+                draw_map(&self.ecs, ctx);
+
+                {
+                    let positions = self.ecs.read_storage::<Position>();
+                    let renderables = self.ecs.read_storage::<Renderable>();
+                    let map = self.ecs.fetch::<Map>();
+                    let mut data = (&positions, &renderables).join().collect::<Vec<_>>();
+                    data.sort_by(|&a, &b| b.1.render_order.cmp(&a.1.render_order));
+
+                    for (pos, render) in data.iter() {
+                        let idx = map.xy_idx(pos.x, pos.y);
+                        if map.visible_tiles[idx] {
+                            ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph)
+                        }
+                    }
+
+                    gui::draw_ui(&self.ecs, ctx);
+                }
+
+            }
         }
 
         match newrunstate {
@@ -154,6 +163,19 @@ impl GameState for State {
                         let mut intent = self.ecs.write_storage::<WantsToUseItem>();
                         intent.insert(*self.ecs.fetch::<Entity>(), WantsToUseItem { item, target: Some(point) }).expect("Unable to insert intent");
                         newrunstate = RunState::PlayerTurn;
+                    }
+                }
+            }
+            RunState::MainMenu { .. } => {
+                let result = gui::main_menu(self, ctx);
+                match result {
+                    MainMenuResult::NoSelection { selected } => newrunstate = RunState::MainMenu { menu_selection: selected },
+                    MainMenuResult::Selected { selected } => {
+                        match selected {
+                            MainMenuSelection::NewGame => newrunstate = RunState::PreRun,
+                            MainMenuSelection::LoadGame => newrunstate = RunState::PreRun,
+                            MainMenuSelection::Quit => ::std::process::exit(0),
+                        }
                     }
                 }
             }
