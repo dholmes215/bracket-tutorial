@@ -181,6 +181,8 @@ impl GameState for State {
                 }
             }
             RunState::SaveGame => {
+                let data = serde_json::to_string(&*self.ecs.fetch::<Map>()).unwrap();
+                println!("{}", data);
                 newrunstate = RunState::MainMenu { menu_selection: MainMenuSelection::LoadGame };
             }
         }
