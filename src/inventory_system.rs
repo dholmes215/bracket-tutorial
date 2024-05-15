@@ -111,6 +111,8 @@ impl<'a> System<'a> for ItemUseSystem {
                                 let item_name = names.get(useitem.item).unwrap();
                                 gamelog.entries.push(format!("You use {} on {}, confusing them.", item_name.name, mob_name.name));
                             }
+
+                            used_item = true;
                         }
                     }
                 }

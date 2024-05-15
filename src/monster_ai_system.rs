@@ -17,7 +17,7 @@ impl<'a> System<'a> for MonsterAI {
                        ReadStorage<'a, Monster>,
                        WriteStorage<'a, Position>,
                        WriteStorage<'a, WantsToMelee>,
-        WriteStorage<'a, Confusion>,
+                       WriteStorage<'a, Confusion>,
     );
 
     fn run(&mut self, data: Self::SystemData) {

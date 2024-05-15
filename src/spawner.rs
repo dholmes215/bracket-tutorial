@@ -178,7 +178,7 @@ fn magic_missile_scroll(ecs: &mut World, x: i32, y: i32) {
         .build();
 }
 
-fn confusion_scroll(ecs: &mut World, x: i32, y: i32) {
+pub fn confusion_scroll(ecs: &mut World, x: i32, y: i32) {
     ecs.create_entity()
         .with(Position { x, y })
         .with(Renderable {

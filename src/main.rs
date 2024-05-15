@@ -24,6 +24,7 @@ use crate::map_indexing_system::MapIndexingSystem;
 use crate::melee_combat_system::MeleeCombatSystem;
 use crate::monster_ai_system::MonsterAI;
 use crate::player::player_input;
+use crate::spawner::confusion_scroll;
 use crate::visibility_system::VisibilitySystem;
 
 const TERM_WIDTH: i32 = 80;
@@ -190,6 +191,7 @@ fn main() -> BError {
     let (player_x, player_y) = map.rooms[0].center();
 
     let player_entity = spawner::player(&mut gs.ecs, player_x, player_y);
+    confusion_scroll(&mut gs.ecs, player_x, player_y);  // TODO: for testing, remove later
 
     gs.ecs.insert(RandomNumberGenerator::new());
     for room in map.rooms.iter().skip(1) {
