@@ -219,20 +219,20 @@ fn main() -> BError {
     let map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();
 
+    gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
+
     let player_entity = spawner::player(&mut gs.ecs, player_x, player_y);
     confusion_scroll(&mut gs.ecs, player_x, player_y);  // TODO: for testing, remove later
 
-    gs.ecs.insert(RandomNumberGenerator::new());
-    for room in map.rooms.iter().skip(1) {
-        spawner::spawn_room(&mut gs.ecs, room);
-    }
-
-    gs.ecs.insert(map);
     gs.ecs.insert(Point::new(player_x, player_y));
     gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::PreRun);
     gs.ecs.insert(gamelog::GameLog { entries: vec!["Welcome to Rusty Roguelike".to_string()] });
-    gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
+    gs.ecs.insert(RandomNumberGenerator::new());
+    for room in map.rooms.iter().skip(1) {
+        spawner::spawn_room(&mut gs.ecs, room);
+    }
+    gs.ecs.insert(map);
 
     main_loop(context, gs)
 }
