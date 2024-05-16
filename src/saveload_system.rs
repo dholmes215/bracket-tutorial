@@ -6,6 +6,8 @@ use specs::{Builder, Entity, Join, World, WorldExt};
 use specs::saveload::{MarkedBuilder, SimpleMarker, SerializeComponents, DeserializeComponents, SimpleMarkerAllocator};
 use crate::components::*;
 
+const SAVE_PATH: &str = "./savegame.json";
+
 macro_rules! serialize_individually {
     ($ecs:expr, $ser:expr, $data:expr, $( $type:ty),*) => {
         $(
@@ -34,7 +36,7 @@ pub fn save_game(ecs: &mut World) {
     {
         let data = (ecs.entities(), ecs.read_storage::<SimpleMarker<SerializeMe>>());
 
-        let writer = File::create("./savegame.json").unwrap();
+        let writer = File::create(SAVE_PATH).unwrap();
         let mut serializer = serde_json::Serializer::new(writer);
         serialize_individually!(ecs, serializer, data, Position, Renderable, Player, Viewshed, Monster,
             Name, BlocksTile, CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage,
@@ -52,7 +54,7 @@ pub fn save_game(_ecs : &mut World) {
 }
 
 pub fn does_save_exist() -> bool {
-    Path::new("./savegame.json").exists()
+    Path::new(SAVE_PATH).exists()
 }
 
 macro_rules! deserialize_individually {
@@ -82,7 +84,7 @@ pub fn load_game(ecs: &mut World) {
         }
     }
 
-    let data = fs::read_to_string("./savegame.json").unwrap();
+    let data = fs::read_to_string(SAVE_PATH).unwrap();
     let mut de = serde_json::Deserializer::from_str(&data);
 
     {
@@ -118,5 +120,5 @@ pub fn load_game(ecs: &mut World) {
 }
 
 pub fn delete_save() {
-    if Path::new("./savegame.json").exists() { std::fs::remove_file("./savegame.json").expect("Unable to delete file"); }
+    if Path::new(SAVE_PATH).exists() { std::fs::remove_file(SAVE_PATH).expect("Unable to delete file"); }
 }
