@@ -1,12 +1,13 @@
 use std::fs;
 use std::fs::File;
+use std::io::BufReader;
 use std::path::Path;
 use bracket_lib::prelude::Point;
 use specs::{Builder, Entity, Join, World, WorldExt};
 use specs::saveload::{MarkedBuilder, SimpleMarker, SerializeComponents, DeserializeComponents, SimpleMarkerAllocator};
 use crate::components::*;
 
-const SAVE_PATH: &str = "./savegame.json";
+const SAVE_PATH: &str = "./savegame.json.gz";
 
 macro_rules! serialize_individually {
     ($ecs:expr, $ser:expr, $data:expr, $( $type:ty),*) => {
@@ -37,7 +38,8 @@ pub fn save_game(ecs: &mut World) {
         let data = (ecs.entities(), ecs.read_storage::<SimpleMarker<SerializeMe>>());
 
         let writer = File::create(SAVE_PATH).unwrap();
-        let mut serializer = serde_json::Serializer::new(writer);
+        let gz = flate2::GzBuilder::new().write(writer, flate2::Compression::fast());
+        let mut serializer = serde_json::Serializer::new(gz);
         serialize_individually!(ecs, serializer, data, Position, Renderable, Player, Viewshed, Monster,
             Name, BlocksTile, CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage,
             AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
@@ -84,8 +86,9 @@ pub fn load_game(ecs: &mut World) {
         }
     }
 
-    let data = fs::read_to_string(SAVE_PATH).unwrap();
-    let mut de = serde_json::Deserializer::from_str(&data);
+    let bufreader = BufReader::new(File::open(SAVE_PATH).expect("Failed to open save file to read"));
+    let gz = flate2::bufread::GzDecoder::new(bufreader);
+    let mut de = serde_json::Deserializer::from_reader(gz);
 
     {
         let mut d = (&mut ecs.entities(), &mut ecs.write_storage::<SimpleMarker<SerializeMe>>(), &mut ecs.write_resource::<SimpleMarkerAllocator<SerializeMe>>());

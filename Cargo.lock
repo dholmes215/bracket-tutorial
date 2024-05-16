@@ -209,6 +209,7 @@ name = "bracket-tutorial"
 version = "0.1.0"
 dependencies = [
  "bracket-lib",
+ "flate2",
  "serde",
  "serde_json",
  "specs",

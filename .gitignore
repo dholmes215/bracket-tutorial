@@ -2,3 +2,5 @@
 /.idea
 /wasm/*.js
 /wasm/*.wasm
+savegame.json
+savegame.json.gz
