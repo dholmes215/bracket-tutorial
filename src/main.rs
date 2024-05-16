@@ -87,23 +87,7 @@ impl GameState for State {
         ctx.cls();
 
         match newrunstate {
-            RunState::MainMenu {..} => {
-                let result = gui::main_menu(self, ctx);
-                match result {
-                    MainMenuResult::NoSelection { selected } => newrunstate = RunState::MainMenu { menu_selection: selected },
-                    MainMenuResult::Selected { selected } => {
-                        match selected {
-                            MainMenuSelection::NewGame => newrunstate = RunState::PreRun,
-                            MainMenuSelection::LoadGame => {
-                                saveload_system::load_game(&mut self.ecs);
-                                newrunstate = RunState::AwaitingInput;
-                                saveload_system::delete_save();
-                            }
-                            MainMenuSelection::Quit => std::process::exit(0),
-                        }
-                    }
-                }
-            }
+            RunState::MainMenu {..} => {}
             _ => {
                 draw_map(&self.ecs, ctx);
 
@@ -192,7 +176,11 @@ impl GameState for State {
                     MainMenuResult::Selected { selected } => {
                         match selected {
                             MainMenuSelection::NewGame => newrunstate = RunState::PreRun,
-                            MainMenuSelection::LoadGame => newrunstate = RunState::PreRun,
+                            MainMenuSelection::LoadGame => {
+                                saveload_system::load_game(&mut self.ecs);
+                                newrunstate = RunState::AwaitingInput;
+                                saveload_system::delete_save();
+                            }
                             MainMenuSelection::Quit => std::process::exit(0),
                         }
                     }
