@@ -20,6 +20,7 @@ macro_rules! serialize_individually {
     };
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn save_game(ecs: &mut World) {
     // Create helper
     let mapcopy = ecs.get_mut::<super::map::Map>().unwrap().clone();
@@ -44,6 +45,10 @@ pub fn save_game(ecs: &mut World) {
 
     // Clean up
     ecs.delete_entity(savehelper).expect("Crash on cleanup");
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn save_game(_ecs : &mut World) {
 }
 
 pub fn does_save_exist() -> bool {
