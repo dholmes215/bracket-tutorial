@@ -11,6 +11,7 @@ mod gamelog;
 mod spawner;
 mod item_collection_system;
 mod inventory_system;
+mod saveload_system;
 
 use bracket_lib::prelude::*;
 use specs::prelude::*;
@@ -182,8 +183,7 @@ impl GameState for State {
                 }
             }
             RunState::SaveGame => {
-                let data = serde_json::to_string(&*self.ecs.fetch::<Map>()).unwrap();
-                println!("{}", data);
+                saveload_system::save_game(&mut self.ecs);
                 newrunstate = RunState::MainMenu { menu_selection: MainMenuSelection::LoadGame };
             }
         }

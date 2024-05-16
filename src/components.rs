@@ -14,7 +14,7 @@ pub struct Position {
     pub y: i32,
 }
 
-#[derive(Component, ConvertSaveload)]
+#[derive(Component, ConvertSaveload, Clone)]
 pub struct Renderable {
     pub glyph: FontCharType,
     pub fg: RGB,
@@ -22,28 +22,28 @@ pub struct Renderable {
     pub render_order: i32,
 }
 
-#[derive(Component, Serialize, Deserialize, Debug)]
+#[derive(Component, Serialize, Deserialize, Debug, Clone)]
 pub struct Player {}
 
-#[derive(Component, ConvertSaveload)]
+#[derive(Component, ConvertSaveload, Clone)]
 pub struct Viewshed {
     pub visible_tiles: Vec<Point>,
     pub range: i32,
     pub dirty: bool,
 }
 
-#[derive(Component, Serialize, Deserialize, Debug)]
+#[derive(Component, Serialize, Deserialize, Debug, Clone)]
 pub struct Monster {}
 
-#[derive(Component, ConvertSaveload, Debug)]
+#[derive(Component, ConvertSaveload, Debug, Clone)]
 pub struct Name {
     pub name: String,
 }
 
-#[derive(Component, Serialize, Deserialize, Debug)]
+#[derive(Component, Serialize, Deserialize, Debug, Clone)]
 pub struct BlocksTile {}
 
-#[derive(Component, ConvertSaveload, Debug)]
+#[derive(Component, ConvertSaveload, Debug, Clone)]
 pub struct CombatStats {
     pub max_hp: i32,
     pub hp: i32,
@@ -56,7 +56,7 @@ pub struct WantsToMelee {
     pub target: Entity,
 }
 
-#[derive(Component, ConvertSaveload, Debug)]
+#[derive(Component, ConvertSaveload, Debug, Clone)]
 pub struct SufferDamage {
     pub amount: Vec<i32>,
 }
@@ -72,15 +72,15 @@ impl SufferDamage {
     }
 }
 
-#[derive(Component, Serialize, Deserialize, Debug)]
+#[derive(Component, Serialize, Deserialize, Debug, Clone)]
 pub struct Item {}
 
-#[derive(Component, ConvertSaveload, Debug)]
+#[derive(Component, ConvertSaveload, Debug, Clone)]
 pub struct ProvidesHealing {
     pub heal_amount: i32,
 }
 
-#[derive(Component, ConvertSaveload, Debug)]
+#[derive(Component, ConvertSaveload, Debug, Clone)]
 pub struct InBackpack {
     pub owner: Entity,
 }
@@ -91,41 +91,46 @@ pub struct WantsToPickupItem {
     pub item: Entity,
 }
 
-#[derive(Component, ConvertSaveload, Debug)]
+#[derive(Component, ConvertSaveload, Debug, Clone)]
 pub struct WantsToUseItem {
     pub item: Entity,
     pub target: Option<Point>,
 }
 
-#[derive(Component, ConvertSaveload, Debug)]
+#[derive(Component, ConvertSaveload, Debug, Clone)]
 pub struct WantsToDropItem {
     pub item: Entity
 }
 
-#[derive(Component, Serialize, Deserialize, Debug)]
+#[derive(Component, Serialize, Deserialize, Debug, Clone)]
 pub struct Consumable {}
 
-#[derive(Component, ConvertSaveload, Debug)]
+#[derive(Component, ConvertSaveload, Debug, Clone)]
 pub struct Ranged {
     pub range: i32,
 }
 
-#[derive(Component, ConvertSaveload, Debug)]
+#[derive(Component, ConvertSaveload, Debug, Clone)]
 pub struct InflictsDamage {
     pub damage: i32,
 }
 
-#[derive(Component, ConvertSaveload, Debug)]
+#[derive(Component, ConvertSaveload, Debug, Clone)]
 pub struct AreaOfEffect {
     pub radius: i32,
 }
 
-#[derive(Component, ConvertSaveload, Debug)]
+#[derive(Component, ConvertSaveload, Debug, Clone)]
 pub struct Confusion {
     pub turns: i32,
 }
 
 pub struct SerializeMe;
+
+#[derive(Component, Serialize, Deserialize, Clone)]
+pub struct SerializationHelper {
+    pub map: super::map::Map,
+}
 
 pub fn register_all_components(gs: &mut State) {
     gs.ecs.register::<Position>();
@@ -150,4 +155,5 @@ pub fn register_all_components(gs: &mut State) {
     gs.ecs.register::<AreaOfEffect>();
     gs.ecs.register::<Confusion>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
+    gs.ecs.register::<SerializationHelper>();
 }
