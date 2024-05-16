@@ -5,6 +5,7 @@ use crate::components::*;
 use crate::gamelog::GameLog;
 use crate::map::Map;
 use crate::{RunState, State, TERM_HEIGHT};
+use crate::gui::MainMenuSelection::{LoadGame, NewGame, Quit};
 
 pub fn draw_ui(ecs: &World, ctx: &mut BTerm) {
     ctx.draw_box(0, TERM_HEIGHT - 7, 79, 6, RGB::named(WHITE), RGB::named(BLACK));
@@ -210,6 +211,7 @@ pub enum MainMenuResult { NoSelection { selected: MainMenuSelection }, Selected 
 pub fn main_menu(gs: &mut State, ctx: &mut BTerm) -> MainMenuResult {
     use MainMenuSelection::*;
     use MainMenuResult::*;
+    let save_exists = super::saveload_system::does_save_exist();
     let runstate = gs.ecs.fetch::<RunState>();
 
     ctx.print_color_centered(15, RGB::named(YELLOW), RGB::named(BLACK), "Rust Roguelike Tutorial");
@@ -217,7 +219,9 @@ pub fn main_menu(gs: &mut State, ctx: &mut BTerm) -> MainMenuResult {
     if let RunState::MainMenu { menu_selection: selected } = *runstate {
         let get_color = |s| if selected == s { RGB::named(MAGENTA) } else { RGB::named(WHITE) };
         ctx.print_color_centered(24, get_color(NewGame), RGB::named(BLACK), "Begin New Game");
-        ctx.print_color_centered(25, get_color(LoadGame), RGB::named(BLACK), "Load Game");
+        if save_exists {
+            ctx.print_color_centered(25, get_color(LoadGame), RGB::named(BLACK), "Load Game");
+        }
         ctx.print_color_centered(26, get_color(Quit), RGB::named(BLACK), "Quit");
 
         return match ctx.key {
@@ -226,23 +230,29 @@ pub fn main_menu(gs: &mut State, ctx: &mut BTerm) -> MainMenuResult {
                 match key {
                     VirtualKeyCode::Escape => NoSelection { selected: Quit },
                     VirtualKeyCode::Up => {
-                        // TODO: Rewrite these to not hardcode every element
-                        NoSelection {
-                            selected: match selected {
-                                NewGame => Quit,
-                                LoadGame => NewGame,
-                                Quit => LoadGame,
-                            }
+                        let mut newselection;
+                        match selected {
+                            NewGame => newselection = Quit,
+                            LoadGame => newselection = NewGame,
+                            Quit => newselection = LoadGame
                         }
+                        if newselection == LoadGame && !save_exists {
+                            newselection = NewGame;
+                        }
+                        NoSelection { selected: newselection }
                     }
                     VirtualKeyCode::Down => {
-                        NoSelection {
-                            selected: match selected {
-                                NewGame => LoadGame,
-                                LoadGame => Quit,
-                                Quit => NewGame,
-                            }
+
+                        let mut newselection;
+                        match selected {
+                            NewGame => newselection = LoadGame,
+                            LoadGame => newselection = Quit,
+                            Quit => newselection = NewGame
                         }
+                        if newselection == LoadGame && !save_exists {
+                            newselection = Quit;
+                        }
+                        NoSelection { selected: newselection }
                     }
                     VirtualKeyCode::Return => Selected { selected },
                     _ => NoSelection { selected },

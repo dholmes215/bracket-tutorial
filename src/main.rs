@@ -87,7 +87,22 @@ impl GameState for State {
         ctx.cls();
 
         match newrunstate {
-            RunState::MainMenu {..} => {}
+            RunState::MainMenu {..} => {
+                let result = gui::main_menu(self, ctx);
+                match result {
+                    MainMenuResult::NoSelection { selected } => newrunstate = RunState::MainMenu { menu_selection: selected },
+                    MainMenuResult::Selected { selected } => {
+                        match selected {
+                            MainMenuSelection::NewGame => newrunstate = RunState::PreRun,
+                            MainMenuSelection::LoadGame => {
+                                saveload_system::load_game(&mut self.ecs);
+                                newrunstate = RunState::AwaitingInput;
+                            }
+                            MainMenuSelection::Quit => std::process::exit(0),
+                        }
+                    }
+                }
+            }
             _ => {
                 draw_map(&self.ecs, ctx);
 
@@ -226,7 +241,7 @@ fn main() -> BError {
 
     gs.ecs.insert(Point::new(player_x, player_y));
     gs.ecs.insert(player_entity);
-    gs.ecs.insert(RunState::PreRun);
+    gs.ecs.insert(RunState::MainMenu { menu_selection: MainMenuSelection::NewGame });
     gs.ecs.insert(gamelog::GameLog { entries: vec!["Welcome to Rusty Roguelike".to_string()] });
     gs.ecs.insert(RandomNumberGenerator::new());
     for room in map.rooms.iter().skip(1) {
