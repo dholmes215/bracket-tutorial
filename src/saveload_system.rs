@@ -1,7 +1,7 @@
-use std::fs;
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, Cursor};
 use std::path::Path;
+use std::str;
 use bracket_lib::prelude::Point;
 use specs::{Builder, Entity, Join, World, WorldExt};
 use specs::saveload::{MarkedBuilder, SimpleMarker, SerializeComponents, DeserializeComponents, SimpleMarkerAllocator};
@@ -52,7 +52,37 @@ pub fn save_game(ecs: &mut World) {
 }
 
 #[cfg(target_arch = "wasm32")]
-pub fn save_game(_ecs : &mut World) {
+pub fn save_game(ecs : &mut World) {
+
+    // Create helper
+    let mapcopy = ecs.get_mut::<super::map::Map>().unwrap().clone();
+    let savehelper = ecs
+        .create_entity()
+        .with(SerializationHelper { map: mapcopy })
+        .marked::<SimpleMarker<SerializeMe>>()
+        .build();
+
+    // Actually serialize
+    {
+        let data = (ecs.entities(), ecs.read_storage::<SimpleMarker<SerializeMe>>());
+
+        let mut writer_vec = Vec::new();
+        let mut writer = Cursor::new(&mut writer_vec);
+        // let gz = flate2::GzBuilder::new().write(&writer, flate2::Compression::fast());
+        let mut serializer = serde_json::Serializer::new(&mut writer);
+
+        serialize_individually!(ecs, serializer, data, Position, Renderable, Player, Viewshed, Monster,
+            Name, BlocksTile, CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage,
+            AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
+            WantsToDropItem, SerializationHelper
+        );
+
+        let local_storage = web_sys::window().unwrap().local_storage().unwrap().unwrap();
+        local_storage.set_item("savegame", str::from_utf8(&writer.get_ref()).unwrap()).expect("Write to localstorage failed");
+    }
+
+    // Clean up
+    ecs.delete_entity(savehelper).expect("Crash on cleanup");
 }
 
 pub fn does_save_exist() -> bool {

@@ -214,6 +214,7 @@ dependencies = [
  "serde_json",
  "specs",
  "specs-derive",
+ "web-sys",
 ]
 
 [[package]]
